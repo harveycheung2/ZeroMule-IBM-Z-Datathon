@@ -192,15 +192,22 @@ python -m benchmarks.latency_profiler
 python -m src.evaluation.generate_metrics
 ```
 
-### 5. Launch Interactive Dashboard
+### 5. Launch Operational Dashboard
+To launch the modern web interface:
+```bash
+python -m http.server 8080 --directory frontend
+```
+Access the operational web frontend at http://localhost:8080.
+
+Alternatively, to run the Streamlit service:
 ```bash
 streamlit run app/dashboard.py
 ```
-*Open [http://localhost:8501](http://localhost:8501) in your browser.*
+Access the Streamlit interface at http://localhost:8501.
 
 ---
 
-## 🐳 Docker Multi-Arch Deployment (IBM Z / LinuxONE)
+## Docker Multi-Arch Deployment (IBM Z / LinuxONE)
 
 ZeroMule includes a multi-arch container configuration supporting both `linux/amd64` and `linux/s390x`:
 
@@ -214,26 +221,28 @@ docker run -p 8501:8501 zeromule:latest
 
 ---
 
-## 📂 Repository Layout
+## Repository Layout
 
 ```text
-zeromule/
+ZeroMule-IBM-Z-Datathon/
 ├── app/
-│   └── dashboard.py               # Streamlit + PyVis interactive operational UI
+│   └── dashboard.py               # Streamlit operational UI
 ├── benchmarks/
-│   └── latency_profiler.py        # IBM Z / s390x sub-30ms SLA benchmark & ONNX exporter
+│   └── latency_profiler.py        # IBM Z / s390x sub-30ms SLA benchmark
 ├── data/
 │   ├── raw/                       # HI-Small_Trans.csv, HI-Small_Patterns.txt, BAF
 │   └── processed/                 # Partitioned bank silos & boundary tables
 ├── docker/
 │   └── Dockerfile                 # Multi-arch s390x / amd64 container specification
 ├── docs/
-│   ├── architecture.md            # Model formulation
+│   ├── architecture.md            # Model formulation and architecture specification
 │   └── privacy-architecture.md    # Trust boundaries and deployment requirements
-├── results/
-│   ├── baseline_isolated_scores.csv
-│   ├── latency_benchmark.json
-│   └── plots/                     # 4 publication-grade 300-DPI vector plots
+├── frontend/
+│   ├── index.html                 # Apple-design inspired operational web interface
+│   ├── styles.css                 # Translucent materials, typography and spring physics
+│   └── app.js                     # Interactive chart canvas, tabs and AI copilot logic
+├── results/                       # Benchmark outputs and plots
+│   └── plots/
 ├── src/
 │   ├── data/
 │   │   ├── dataset_loader.py      # Automated ingestion & topology generator
