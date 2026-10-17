@@ -1,12 +1,13 @@
 /**
- * ZeroMule — Interactive Frontend Logic for Fraud & Mule Ring Detection
- * Architecture: Directed-GIN, Salted PSI, Differential Privacy on IBM LinuxONE (s390x)
+ * ZeroMule — Interactive Frontend Logic for Privacy Release Boundary & Enclave Inference
+ * Implementation: BankPrivacyExporter, Persistent SQLite RDP Ledger, Ed25519 Signatures, EnclaveAggregator
+ * Architecture Reference: docs/privacy-architecture.md
  * Design System: Apple WWDC Principles (Response, Interruption, Physical Feedback)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
-  // 1. Interactive Tab Switching & Dynamic AML Enclave Chart Updates
+  // 1. Interactive Tab Switching & Dynamic Privacy Release Chart Updates
   // =========================================================================
   const reportTabs = document.querySelectorAll('.report-tab');
   const chartBarsGroup = document.getElementById('chartBarsGroup');
@@ -20,106 +21,106 @@ document.addEventListener('DOMContentLoaded', () => {
   // Summary Cell Elements
   const summaryCells = document.querySelectorAll('.summary-metric-cell');
 
-  // AML Datasets per Tab
+  // Privacy Datasets per Tab
   const tabDatasets = {
     flow: {
       bars: [
-        { x: 35, y: 105, h: 15, class: 'bar-primary' },
-        { x: 150, y: 108, h: 12, class: 'bar-primary' },
-        { x: 260, y: 110, h: 10, class: 'bar-primary' },
-        { x: 370, y: 120, h: 92, class: 'bar-accent' },
-        { x: 470, y: 108, h: 12, class: 'bar-primary' },
-        { x: 560, y: 90, h: 30, class: 'bar-light' }
+        { x: 35, y: 160, h: 50, class: 'bar-primary' },
+        { x: 150, y: 130, h: 80, class: 'bar-primary' },
+        { x: 260, y: 110, h: 100, class: 'bar-primary' },
+        { x: 370, y: 80, h: 130, class: 'bar-accent' },
+        { x: 470, y: 60, h: 150, class: 'bar-primary' },
+        { x: 560, y: 45, h: 165, class: 'bar-light' }
       ],
-      spline: "M 46 112 Q 100 110, 161 114 T 271 115 T 382 205 T 481 114 T 571 105",
+      spline: "M 46 160 Q 100 145, 161 130 T 271 110 T 382 80 T 481 60 T 571 45",
       dots: [
-        { cx: 46, cy: 112, r: 3.5, label: "Oct 25", val: "$34,200 Screened", sub: "Risk: 0.08 • Benign" },
-        { cx: 161, cy: 114, r: 3.5, label: "Nov 25", val: "$41,500 Screened", sub: "Risk: 0.12 • Benign" },
-        { cx: 271, cy: 115, r: 3.5, label: "Dec 25", val: "$58,900 Screened", sub: "Risk: 0.15 • Normal" },
-        { cx: 382, cy: 205, r: 4.5, label: "Jan 26", val: "$280,000 Ring #104", sub: "Risk: 0.94 • FROZEN (<25ms)", crit: true },
-        { cx: 481, cy: 114, r: 3.5, label: "Feb 26", val: "$36,400 Screened", sub: "Risk: 0.09 • Clear" },
-        { cx: 571, cy: 105, r: 3.5, label: "Mar 26", val: "$48,100 Screened", sub: "Risk: 0.07 • Clear" }
+        { cx: 46, cy: 160, r: 3.5, label: "1. Local Encode", val: "Raw Ledgers Kept Local", sub: "Directed-GIN • No PII Export" },
+        { cx: 161, cy: 130, r: 3.5, label: "2. Clip & Reserve", val: "SQLite Atomic Lock", sub: "Frobenius Norm • ε <= 2.0 Check" },
+        { cx: 271, cy: 110, r: 3.5, label: "3. Gaussian Noise", val: "OS-Random Noise", sub: "std = 2 * C * sigma" },
+        { cx: 382, cy: 80, r: 4.5, label: "4. Ed25519 Sign", val: "Versioned Payload Signed", sub: "Allowlisted Edges Only", crit: true },
+        { cx: 481, cy: 60, r: 3.5, label: "5. Strict Validate", val: "Pinned Key Verification", sub: "Reject Extra Metadata & Plaintext" },
+        { cx: 571, cy: 45, r: 3.5, label: "6. GAT Score >= 0.5", val: "Flagged High-Risk Edges", sub: "Pseudonymous Risk Scored" }
       ],
       summary: [
-        { label: "Total Screened", val: "1,284,520", unit: "tx" },
-        { label: "Boundary Intersections", val: "744", unit: "nodes" },
-        { label: "Laundering Prevented", val: "$540,200", unit: "USD" },
-        { label: "P99 Inference SLA", val: "24.8", unit: "ms" }
+        { label: "Bank-wide DP Budget", val: "1.42 / 2.0", unit: "ε" },
+        { label: "SQLite Ledger State", val: "Atomic", unit: "Persistent" },
+        { label: "Ed25519 Provenance", val: "Pinned", unit: "Verified" },
+        { label: "Coordinator Schema", val: "Allowlist", unit: "Only" }
       ]
     },
-    mules: {
+    budget: {
       bars: [
-        { x: 35, y: 80, h: 40, class: 'bar-primary' },
-        { x: 150, y: 70, h: 50, class: 'bar-primary' },
-        { x: 260, y: 65, h: 55, class: 'bar-primary' },
-        { x: 370, y: 40, h: 80, class: 'bar-accent' },
-        { x: 470, y: 55, h: 65, class: 'bar-primary' },
-        { x: 560, y: 60, h: 60, class: 'bar-light' }
+        { x: 35, y: 180, h: 30, class: 'bar-primary' },
+        { x: 150, y: 150, h: 60, class: 'bar-primary' },
+        { x: 260, y: 120, h: 90, class: 'bar-primary' },
+        { x: 370, y: 95, h: 115, class: 'bar-accent' },
+        { x: 470, y: 75, h: 135, class: 'bar-primary' },
+        { x: 560, y: 68, h: 142, class: 'bar-light' }
       ],
-      spline: "M 46 80 Q 100 75, 161 70 T 271 65 T 382 40 T 481 55 T 571 60",
+      spline: "M 46 180 Q 100 165, 161 150 T 271 120 T 382 95 T 481 75 T 571 68",
       dots: [
-        { cx: 46, cy: 80, r: 3.5, label: "Oct 25", val: "6 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.88" },
-        { cx: 161, cy: 70, r: 3.5, label: "Nov 25", val: "8 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.89" },
-        { cx: 271, cy: 65, r: 3.5, label: "Dec 25", val: "9 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.89" },
-        { cx: 382, cy: 40, r: 4.5, label: "Jan 26", val: "14 Mule Cycles Intercepted", sub: "Ring Solved: 95.6% Recall", crit: true },
-        { cx: 481, cy: 55, r: 3.5, label: "Feb 26", val: "6 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.90" },
-        { cx: 571, cy: 60, r: 3.5, label: "Mar 26", val: "5 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.91" }
+        { cx: 46, cy: 180, r: 3.5, label: "Release 1", val: "ε = 0.32 (δ = 1e-5)", sub: "SQLite Persistent Commit" },
+        { cx: 161, cy: 150, r: 3.5, label: "Release 2", val: "ε = 0.65 (δ = 1e-5)", sub: "Rényi DP Order Composition" },
+        { cx: 271, cy: 120, r: 3.5, label: "Release 3", val: "ε = 0.98 (δ = 1e-5)", sub: "SQLite Persistent Commit" },
+        { cx: 382, cy: 95, r: 4.5, label: "Release 4", val: "ε = 1.25 (δ = 1e-5)", sub: "All Workers Shared Ledger", crit: true },
+        { cx: 481, cy: 75, r: 3.5, label: "Release 5", val: "ε = 1.38 (δ = 1e-5)", sub: "Conservative Grid Bound" },
+        { cx: 571, cy: 68, r: 3.5, label: "Current State", val: "ε = 1.42 / 2.0 (Cap)", sub: "Exceeding Rejects Atomically" }
       ],
       summary: [
-        { label: "Active Rings Solved", val: "48", unit: "rings" },
-        { label: "Mule Ring Recall", val: "95.6%", unit: "resolved" },
-        { label: "Isolated Bank Miss Rate", val: "78.2%", unit: "blind spot" },
-        { label: "Model PR-AUC", val: "0.892", unit: "enclave" }
+        { label: "Current Bank ε", val: "1.42 / 2.0", unit: "RDP" },
+        { label: "Target Delta", val: "1e-5", unit: "Gaussian" },
+        { label: "Persistence Engine", val: "SQLite", unit: "WAL Atomic" },
+        { label: "Exhaustion Action", val: "Fail-Closed", unit: "Atomic Reject" }
       ]
     },
-    boundaries: {
+    hmac: {
       bars: [
-        { x: 35, y: 95, h: 25, class: 'bar-primary' },
-        { x: 150, y: 90, h: 30, class: 'bar-primary' },
-        { x: 260, y: 85, h: 35, class: 'bar-primary' },
-        { x: 370, y: 75, h: 45, class: 'bar-accent' },
-        { x: 470, y: 90, h: 30, class: 'bar-primary' },
-        { x: 560, y: 85, h: 35, class: 'bar-light' }
+        { x: 35, y: 140, h: 70, class: 'bar-primary' },
+        { x: 150, y: 130, h: 80, class: 'bar-primary' },
+        { x: 260, y: 115, h: 95, class: 'bar-primary' },
+        { x: 370, y: 90, h: 120, class: 'bar-accent' },
+        { x: 470, y: 105, h: 105, class: 'bar-primary' },
+        { x: 560, y: 120, h: 90, class: 'bar-light' }
       ],
-      spline: "M 46 95 Q 100 92, 161 90 T 271 85 T 382 75 T 481 90 T 571 85",
+      spline: "M 46 140 Q 100 135, 161 130 T 271 115 T 382 90 T 481 105 T 571 120",
       dots: [
-        { cx: 46, cy: 95, r: 3.5, label: "Oct 25", val: "112 Intersections", sub: "Salted HMAC-SHA256 Match" },
-        { cx: 161, cy: 90, r: 3.5, label: "Nov 25", val: "128 Intersections", sub: "Salted HMAC-SHA256 Match" },
-        { cx: 271, cy: 85, r: 3.5, label: "Dec 25", val: "144 Intersections", sub: "Salted HMAC-SHA256 Match" },
-        { cx: 382, cy: 75, r: 4.5, label: "Jan 26", val: "182 Intersections", sub: "Peak Smurfing Overlap", crit: true },
-        { cx: 481, cy: 90, r: 3.5, label: "Feb 26", val: "96 Intersections", sub: "Salted HMAC-SHA256 Match" },
-        { cx: 571, cy: 85, r: 3.5, label: "Mar 26", val: "82 Intersections", sub: "Salted HMAC-SHA256 Match" }
+        { cx: 46, cy: 140, r: 3.5, label: "Bank A Silo", val: "248 Boundary Pseudonyms", sub: "Key: ZEROMULE_HMAC_KEY_B64" },
+        { cx: 161, cy: 130, r: 3.5, label: "Bank B Silo", val: "312 Boundary Pseudonyms", sub: "Shared High-Entropy Secret" },
+        { cx: 271, cy: 115, r: 3.5, label: "Bank C Silo", val: "184 Boundary Pseudonyms", sub: "Common Account Namespace" },
+        { cx: 382, cy: 90, r: 4.5, label: "Enclave Intersection", val: "744 Intersected Nodes", sub: "Coordinator Receives No Key", crit: true },
+        { cx: 481, cy: 105, r: 3.5, label: "Connectivity Graph", val: "Reveals Topology Only", sub: "Conditional DP Guarantee" },
+        { cx: 571, cy: 120, r: 3.5, label: "Raw Customer IDs", val: "0 Exposed", sub: "Allowlist Hash Only" }
       ],
       summary: [
-        { label: "Boundary Counterparties", val: "744", unit: "hashes" },
-        { label: "PII Exposed", val: "0", unit: "bytes (Zero-Leak)" },
-        { label: "DP Perturbation (ε)", val: "1.42 / 2.0", unit: "RDP" },
-        { label: "PSI Set Match Time", val: "1.18", unit: "ms" }
+        { label: "Matched Pseudonyms", val: "744", unit: "endpoints" },
+        { label: "Coordinator Key State", val: "0 bits", unit: "Key Never Sent" },
+        { label: "Topology Roster", val: "Disclosed", unit: "Connectivity" },
+        { label: "Raw PII Released", val: "0", unit: "bytes" }
       ]
     },
-    latencies: {
+    validation: {
       bars: [
-        { x: 35, y: 115, h: 10, class: 'bar-primary' },
-        { x: 150, y: 116, h: 8, class: 'bar-primary' },
-        { x: 260, y: 95, h: 25, class: 'bar-primary' },
-        { x: 370, y: 70, h: 50, class: 'bar-accent' },
-        { x: 470, y: 110, h: 12, class: 'bar-primary' },
-        { x: 560, y: 65, h: 55, class: 'bar-light' }
+        { x: 35, y: 150, h: 60, class: 'bar-primary' },
+        { x: 150, y: 150, h: 60, class: 'bar-primary' },
+        { x: 260, y: 150, h: 60, class: 'bar-primary' },
+        { x: 370, y: 120, h: 90, class: 'bar-accent' },
+        { x: 470, y: 130, h: 80, class: 'bar-primary' },
+        { x: 560, y: 90, h: 120, class: 'bar-light' }
       ],
-      spline: "M 46 115 Q 100 115, 161 116 T 271 95 T 382 70 T 481 110 T 571 65",
+      spline: "M 46 150 Q 100 150, 161 150 T 271 150 T 382 120 T 481 130 T 571 90",
       dots: [
-        { cx: 46, cy: 115, r: 3.5, label: "Stage 1: PSI", val: "1.18 ms (P99)", sub: "Cryptographic Lookup" },
-        { cx: 161, cy: 116, r: 3.5, label: "Stage 2: DP", val: "0.42 ms (P99)", sub: "L2 Clip & Noise" },
-        { cx: 271, cy: 95, r: 3.5, label: "Stage 3: GAT", val: "6.80 ms (P99)", sub: "Boundary Attention" },
-        { cx: 382, cy: 70, r: 4.5, label: "Stage 4: Head", val: "4.10 ms (P99)", sub: "Contrastive MLP Head", crit: true },
-        { cx: 481, cy: 110, r: 3.5, label: "Stage 5: Fair", val: "0.10 ms (P99)", sub: "Equalized-Odds Gate" },
-        { cx: 571, cy: 65, r: 3.5, label: "Roundtrip", val: "24.80 ms (P99)", sub: "Target < 30ms PASSED" }
+        { cx: 46, cy: 150, r: 3.5, label: "Bank A Signature", val: "Ed25519 Verified", sub: "Pinned Public Key Check" },
+        { cx: 161, cy: 150, r: 3.5, label: "Bank B Signature", val: "Ed25519 Verified", sub: "Pinned Public Key Check" },
+        { cx: 271, cy: 150, r: 3.5, label: "Bank C Signature", val: "Ed25519 Verified", sub: "Pinned Public Key Check" },
+        { cx: 382, cy: 120, r: 4.5, label: "Schema Validation", val: "Strict Schema Enforced", sub: "Rejects Extra Fields / Plaintext", crit: true },
+        { cx: 481, cy: 130, r: 3.5, label: "Payload Receipts", val: "Valid Privacy Receipt", sub: "One Release per Request" },
+        { cx: 571, cy: 90, r: 3.5, label: "Boundary GAT", val: "Risk Scores >= 0.5 Flagged", sub: "Averages Shared Vectors" }
       ],
       summary: [
-        { label: "P50 Round-Trip", val: "13.45", unit: "ms" },
-        { label: "P90 Latency", val: "19.20", unit: "ms" },
-        { label: "P99 Hardware SLA", val: "24.80", unit: "ms (< 30ms)" },
-        { label: "LinuxONE Platform", val: "s390x", unit: "CPACF SIMD" }
+        { label: "Signed Releases", val: "3 / 3", unit: "Validated" },
+        { label: "Unsigned/Plaintext", val: "Rejected", unit: "Strict Schema" },
+        { label: "Sensitivity Bound", val: "||H||F <= 2C", unit: "Frobenius" },
+        { label: "Flag Threshold", val: "Score >= 0.5", unit: "Enclave GAT" }
       ]
     }
   };
@@ -228,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // =========================================================================
-  // 2. Interactive AI Assistant / Enclave AML Copilot
+  // 2. Interactive AI Assistant / Enclave Privacy Copilot
   // =========================================================================
   const chatInput = document.getElementById('chatInput');
   const chatSendBtn = document.getElementById('chatSendBtn');
@@ -239,13 +240,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectedModelLabel = document.getElementById('selectedModelLabel');
   const modelOptions = document.querySelectorAll('.model-option');
 
-  // ZeroMule AML Domain Knowledge Base
+  // Exact Knowledge Base Matching New Privacy Release Policy
   const aiKnowledgeBase = {
-    ring104: "Mule Ring #104 was flagged within 24.8ms on IBM LinuxONE: 4 accounts cycled $280,000 across Bank A -> Bank B -> Bank C with a 0.94 Directed-GIN anomaly score. Equalized-Odds thresholding confirmed zero elderly false-positive lockouts, holding illicit funds prior to inter-bank clearing.",
-    psi: "Salted HMAC-SHA256 PSI computes cryptographic hash intersections across participant ledgers using an ephemeral salt agreed upon via key exchange. Participating banks never broadcast internal account IDs, customer balances, or PII—only blind boundary hashes match in the secure enclave.",
-    fairness: "ZeroMule applies Equalized-Odds threshold calibration on the NeurIPS Bank Account Fraud (BAF) suite. This calibrates group-specific decision gates: |FPR(Senior >= 65) - FPR(Standard)| <= 0.015. Senior accounts are shielded from scam lockouts with an empirical parity gap of only 0.2%.",
-    latency: "Hardware profiling on IBM LinuxONE (s390x) verifies: Stage 1 (PSI: 1.18ms) + Stage 2 (DP Noise: 0.42ms) + Stage 3 (GAT + Contrastive Head: 11.85ms) = 24.8ms P99 roundtrip. This strictly satisfies the 30ms pre-settlement SLA constraint.",
-    default: "Enclave Telemetry active on IBM LinuxONE s390x Secure Execution. Differential Privacy budget: ε=1.42 / 2.0 (δ=10⁻⁵). 48 multi-bank circular rings solved with zero PII leakage."
+    sqlite: "A persistent bank-wide SQLite ledger atomically reserves privacy budget before generating OS-random Gaussian noise. All workers, models and key rotations share that ledger. If an export would cause cumulative epsilon to exceed 2.0 at delta 1e-5, it is atomically rejected. Failures after reservation still consume budget.",
+    ed25519: "Each bank holds an independent Ed25519 private signing key, and the coordinator pins its public verification key. The bank signs a versioned payload containing only pseudonymous embeddings, allowlisted edges, bank identity and a privacy receipt. Amounts, timestamps, labels and arbitrary metadata are excluded. Signatures establish bank provenance; they do not prove that a compromised bank applied noise or enforced its budget.",
+    hmac: "Banks share a high-entropy HMAC matching key so the same account produces the same pseudonym across institutions; the coordinator never receives that key. Matching reveals equality and connectivity; raw account IDs, balances, and transaction attributes remain strictly local to each bank.",
+    flow: "The 5-step protected inference flow: 1. Local Directed-GIN encodes private transactions. 2. BankPrivacyExporter clips whole-batch Frobenius norm and atomically reserves budget in SQLite before adding OS-random Gaussian noise. 3. Bank signs the versioned allowlisted payload with Ed25519. 4. EnclaveAggregator verifies signatures against pinned keys, strict schemas, and vector dimensions. 5. Coordinator runs boundary GAT and flags scores at or above 0.5.",
+    disclaimer: "This repository simulates an enclave in Python; hardware attestation must be supplied and verified externally. The DP bound covers embedding values conditional on a disclosed roster/topology; HMAC matching reveals connectivity. SQLite does not prevent privileged filesystem rollback. Benchmark figures are historical demonstration metrics.",
+    default: "Banks protect data before export: runtime HMAC keys pseudonymize endpoints, whole-batch clipping and OS-random Gaussian noise protect embedding values, and a persistent SQLite ledger atomically rejects releases exceeding epsilon 2.0 at delta 1e-5. Raw ledgers and model weights remain bank-local."
   };
 
   function appendChatMessage(sender, text) {
@@ -267,14 +269,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Determine Response
     let responseText = aiKnowledgeBase.default;
     const lower = text.toLowerCase();
-    if (lower.includes('104') || lower.includes('frozen') || lower.includes('mule ring')) {
-      responseText = aiKnowledgeBase.ring104;
-    } else if (lower.includes('psi') || lower.includes('pii') || lower.includes('leakage') || lower.includes('hash')) {
-      responseText = aiKnowledgeBase.psi;
-    } else if (lower.includes('fairness') || lower.includes('senior') || lower.includes('elderly') || lower.includes('parity')) {
-      responseText = aiKnowledgeBase.fairness;
-    } else if (lower.includes('latency') || lower.includes('s390x') || lower.includes('sla') || lower.includes('speed')) {
-      responseText = aiKnowledgeBase.latency;
+    if (lower.includes('sqlite') || lower.includes('budget') || lower.includes('reserve') || lower.includes('persist')) {
+      responseText = aiKnowledgeBase.sqlite;
+    } else if (lower.includes('ed25519') || lower.includes('sign') || lower.includes('pinned') || lower.includes('provenance')) {
+      responseText = aiKnowledgeBase.ed25519;
+    } else if (lower.includes('hmac') || lower.includes('matching key') || lower.includes('pseudonym') || lower.includes('pii')) {
+      responseText = aiKnowledgeBase.hmac;
+    } else if (lower.includes('flow') || lower.includes('pipeline') || lower.includes('steps')) {
+      responseText = aiKnowledgeBase.flow;
+    } else if (lower.includes('attestation') || lower.includes('disclaimer') || lower.includes('benchmark')) {
+      responseText = aiKnowledgeBase.disclaimer;
     }
 
     // Simulate Natural AI Response Typing
@@ -343,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailsBtn = document.getElementById('detailsBtn');
   if (detailsBtn) {
     detailsBtn.addEventListener('click', () => {
-      appendChatMessage('ai', "Enclave Telemetry Audit: 48 cross-bank laundering rings identified. Equalized-Odds calibration maintains elderly disparity gap at 0.2% (Target SLA <= 1.5%).");
+      appendChatMessage('ai', "Privacy Policy: Raw ledgers, model checkpoints and unperturbed embeddings remain bank-local. The coordinator enforces pinned Ed25519 public keys, strict schemas, and flags scores >= 0.5.");
     });
   }
 

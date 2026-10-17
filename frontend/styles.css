@@ -664,6 +664,12 @@ button:active, .nav-item:active, .report-tab:active, .prompt-chip:active {
   stroke-dasharray: none;
 }
 
+.grid-line.cap-line {
+  stroke: rgba(239, 68, 68, 0.35);
+  stroke-dasharray: 6 3;
+  stroke-width: 1.2px;
+}
+
 /* Bar Elements */
 .bar-fill {
   transition: transform 250ms var(--ease-spring), opacity 150ms ease;
@@ -1069,6 +1075,11 @@ button:active, .nav-item:active, .report-tab:active, .prompt-chip:active {
 .neg-badge {
   background: var(--accent-danger-soft);
   color: var(--accent-danger);
+}
+
+.pos-badge {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
 }
 
 /* Rate Indicators Row */
