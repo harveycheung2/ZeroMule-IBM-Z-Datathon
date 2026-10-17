@@ -101,25 +101,25 @@ st.markdown("""
 # Sidebar controls
 st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg", width=120)
 st.sidebar.markdown("### **ZeroMule Control Center**")
-st.sidebar.caption("Federated Cross-Bank AML Shield on IBM Z Confidential Computing")
+st.sidebar.caption("See how banks can spot shared fraud without sharing raw records")
 
 nav_choice = st.sidebar.radio(
     "Operational Views",
     [
-        "1. 🏦 Banking Silo View (Blind Spots)",
-        "2. 🛡️ IBM Enclave Subgraph (Mule Ring)",
-        "3. ⚡ Real-Time Pre-Settlement Stream",
-        "4. 📊 Performance & Fairness Auditing",
+        "1. 🏦 What One Bank Sees",
+        "2. 🛡️ What ZeroMule Finds",
+        "3. ⚡ Try a Transaction",
+        "4. 📊 Evidence & Fairness",
     ]
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### **Security & Enclave Config**")
-st.sidebar.markdown("🔒 **Attestation**: `Not connected (simulation)`")
-st.sidebar.info("Synthetic demonstration. No live bank data, attestation or measured privacy receipts.")
-st.sidebar.markdown("🔑 **HMAC matching**: `Demonstration`")
-st.sidebar.markdown("🛡️ **Differential Privacy**: `(ε=2.0, δ=10⁻⁵)`")
-st.sidebar.markdown("⏱️ **Inference SLA**: `< 30.0 ms P99`")
+st.sidebar.markdown("### **Privacy status**")
+st.sidebar.markdown("🔒 **Hardware protection**: `Simulation`")
+st.sidebar.info("Synthetic demo. No live bank data or verified hardware attestation.")
+st.sidebar.markdown("🔑 **Account matching**: `Protected pseudonyms`")
+st.sidebar.markdown("🛡️ **Data sharing**: `Protected embeddings`")
+st.sidebar.markdown("⏱️ **Speed**: `Target under 30 ms`")
 
 st.sidebar.markdown("---")
 st.sidebar.caption("ZeroMule © 2026 | Built for IBM Datathon")
@@ -129,7 +129,7 @@ st.sidebar.caption("ZeroMule © 2026 | Built for IBM Datathon")
 col_h1, col_h2 = st.columns([3, 1])
 with col_h1:
     st.markdown('<div class="main-title">🛡️ ZeroMule: Cross-Bank AML Detection</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">Privacy-Preserving Directed-GIN & HMAC matching Enclave on IBM Z LinuxONE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-title">Find shared fraud patterns while each bank keeps its raw records private</div>', unsafe_allow_html=True)
 with col_h2:
     st.markdown(r"""
     <div style="text-align: right; padding-top: 10px;">
@@ -145,11 +145,22 @@ st.markdown("---")
 # PANEL 1: BANKING SILO VIEW
 # ==========================================
 if "1." in nav_choice:
-    st.subheader("🏦 Panel 1: The Banking Silo View (Single-Bank Blind Spot)")
+    st.subheader("🏦 What One Bank Sees")
+    st.caption("Each bank sees only its own transactions. The full pattern is hidden across institutions.")
+    if "scenario_started" not in st.session_state:
+        st.session_state.scenario_started = False
+    action_col, status_col = st.columns([1, 2])
+    with action_col:
+        if st.button("▶ Run suspicious money-flow demo", type="primary"):
+            st.session_state.scenario_started = True
+    with status_col:
+        if st.session_state.scenario_started:
+            st.success("Demo ready: Bank A → Bank B → Bank C → Bank A")
+        else:
+            st.info("Start the demo to reveal the cross-bank pattern.")
     st.markdown(r"""
-    When financial institutions operate in isolation, criminal syndicates intentionally fragment transactions
-    across multiple banks (**smurfing**). Each isolated bank only sees **single-hop, normal transactions** and
-    triggers **zero alerts** (PR-AUC $\le 0.45$).
+    A suspicious group can split one flow across several banks. Each bank sees a normal-looking payment,
+    but no single bank sees the complete path.
     """)
 
     col_b1, col_b2, col_b3 = st.columns(3)
@@ -202,7 +213,8 @@ if "1." in nav_choice:
 # PANEL 2: IBM ENCLAVE SUBGRAPH RECONSTRUCTION
 # ==========================================
 elif "2." in nav_choice:
-    st.subheader("🛡️ Panel 2: The IBM Enclave Subgraph Reconstruction")
+    st.subheader("🛡️ What ZeroMule Finds")
+    st.caption("Banks share protected signals—not raw customer ledgers—so the shared pattern can be detected.")
     st.markdown(r"""
     In this software simulation, **ZeroMule** matches HMAC pseudonyms (not cryptographic PSI)
     and reconstructs the cross-bank directed multigraph with $(\epsilon=2.0, \delta=10^{-5})$ Differentially Private embeddings.
@@ -219,7 +231,7 @@ elif "2." in nav_choice:
         st.markdown('<div class="metric-card"><div class="metric-label">Topology Identified</div><div class="metric-val" style="color: #DA1E28;">5-Hop Cycle</div></div>', unsafe_allow_html=True)
 
     st.write("")
-    st.markdown('<div class="alert-freeze">🚨 <strong>CONFIRMED CROSS-BANK MULE RING DETECTED:</strong> Topology: <code>5-Hop Circular Laundering</code> across Bank A → Bank B → Bank C → Bank A. Anomaly Risk Score: <strong>0.984 (EXTREME RISK)</strong>.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="alert-freeze">🚨 <strong>SIMULATED SUSPICIOUS FLOW:</strong> Bank A → Bank B → Bank C → Bank A. Risk score: <strong>0.984 (high risk)</strong>.</div>', unsafe_allow_html=True)
 
     # Render interactive network graph
     st.markdown("#### 🕸️ Reconstructed Cross-Bank Topology")
@@ -266,7 +278,8 @@ elif "2." in nav_choice:
 # PANEL 3: REAL-TIME TRANSACTION FEED
 # ==========================================
 elif "3." in nav_choice:
-    st.subheader("⚡ Panel 3: Real-Time In-Transaction Streaming Feed (<30ms SLA)")
+    st.subheader("⚡ Try a Transaction")
+    st.caption("Choose a sample payment and see how the protected analysis responds before settlement.")
     st.markdown("""
     Illustrative inference pipeline targeting s390x deployment.
     This synthetic feed illustrates **HMAC lookup + DP perturbation + GAT cycle inference**
@@ -326,7 +339,7 @@ elif "3." in nav_choice:
 # PANEL 4: BENCHMARKS & FAIRNESS
 # ==========================================
 elif "4." in nav_choice:
-    st.subheader("📊 Panel 4: Performance Benchmarks & Fairness Auditing")
+    st.subheader("📊 Evidence & Fairness")
     st.markdown("""
     Rigorous empirical evaluation comparing **ZeroMule** against single-bank isolated baselines,
     privacy utility retention curves, deterministic latency benchmarks, and Equalized-Odds fairness calibration.
