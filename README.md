@@ -146,8 +146,8 @@ $$|P(\hat{Y}=1 \mid Y=0, \text{Age} \ge 65) - P(\hat{Y}=1 \mid Y=0, \text{Age} <
 
 ### 1. Clone & Set Up Environment
 ```bash
-git clone https://github.com/harveycheung2/zeromule.git
-cd zeromule
+git clone https://github.com/harveycheung2/ZeroMule-IBM-Z-Datathon.git
+cd ZeroMule-IBM-Z-Datathon
 
 # Create and activate virtual environment
 python -m venv .venv
