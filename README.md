@@ -199,12 +199,6 @@ python -m http.server 8080 --directory frontend
 ```
 Access the operational web frontend at http://localhost:8080.
 
-Alternatively, to run the Streamlit service:
-```bash
-streamlit run app/dashboard.py
-```
-Access the Streamlit interface at http://localhost:8501.
-
 ---
 
 ## Docker Multi-Arch Deployment (IBM Z / LinuxONE)
@@ -216,7 +210,7 @@ ZeroMule includes a multi-arch container configuration supporting both `linux/am
 docker buildx build --platform linux/amd64,linux/s390x -t zeromule:latest -f docker/Dockerfile .
 
 # Run containerized dashboard
-docker run -p 8501:8501 zeromule:latest
+docker run -p 8080:8080 zeromule:latest
 ```
 
 ---
@@ -225,8 +219,6 @@ docker run -p 8501:8501 zeromule:latest
 
 ```text
 ZeroMule-IBM-Z-Datathon/
-├── app/
-│   └── dashboard.py               # Streamlit operational UI
 ├── benchmarks/
 │   └── latency_profiler.py        # IBM Z / s390x sub-30ms SLA benchmark
 ├── data/

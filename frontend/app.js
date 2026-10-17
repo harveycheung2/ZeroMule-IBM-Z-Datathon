@@ -7,6 +7,13 @@
 // CONSTANTS & CONFIGURATION
 // -----------------------------------------------------------------------------
 const CONFIG = {
+  // Backend Integration Configuration:
+  // Points to an active Python API (e.g., http://localhost:8000) or relative "/api"
+  apiBaseUrl: window.ZEROMULE_API_BASE || "",
+  telemetryEndpoint: "/api/telemetry",
+  fallbackJsonPath: "data/live_data.json",
+  pollIntervalMs: 5000,
+
   rawAccount: "SG-DBS-884920194",
   sharedHmacKey: "interbank-shared-hmac-secret-2026",
   baseRawEmbedding: [2.419, -1.882, 0.941, 3.102],
@@ -21,6 +28,20 @@ let state = {
   gateMode: "valid",   // "valid" | "tampered" | "plaintext"
   pseudoId: "8f4b5961a293847291a2bc8394e1d939281746b8c9d01e23a4b5c6d7e8f90123",
   perturbedEmbedding: [0.412, -0.319, 0.188, 0.504],
+
+  // Live ML Integration Status
+  isLiveBackend: false,
+  metrics: {
+    prAuc: "0.88",
+    recallAtFpr: "84.2% Recall @ 0.1% FPR",
+    totalScreened: "142,890",
+    totalVolume: "$34.82M Volume",
+    interceptedRings: "38 Rings",
+    interceptedAmount: "$1,842,500 Illicit Funds",
+    interceptRate: "99.2%",
+    p99Latency: "24.2 ms",
+    p50Latency: "16.8 ms",
+  },
 
   // Singular Bank View State
   selectedBank: "bankA", // "bankA" | "bankB" | "bankC"
@@ -249,6 +270,18 @@ const globalSearchInput = document.getElementById("globalSearchInput");
 const globalStatusSelect = document.getElementById("globalStatusSelect");
 const globalBankSelect = document.getElementById("globalBankSelect");
 const globalTableBody = document.getElementById("globalTableBody");
+
+// Backend Integration DOM References
+const backendStatusPill = document.getElementById("backendStatusPill");
+const kpiAucValue = document.getElementById("kpiAucValue");
+const kpiRecallValue = document.getElementById("kpiRecallValue");
+const overviewScreenedValue = document.getElementById("overviewScreenedValue");
+const overviewVolumeBadge = document.getElementById("overviewVolumeBadge");
+const overviewInterceptedRings = document.getElementById("overviewInterceptedRings");
+const overviewInterceptedAmount = document.getElementById("overviewInterceptedAmount");
+const overviewInterceptRate = document.getElementById("overviewInterceptRate");
+const overviewLatencyValue = document.getElementById("overviewLatencyValue");
+const overviewLatencySub = document.getElementById("overviewLatencySub");
 
 // -----------------------------------------------------------------------------
 // SVG RENDERERS: 4-STAGE FLOW & PAYROLL (INFORMATION VIEW)
@@ -500,8 +533,16 @@ async function updateInfoView() {
   sigmaValDisplay.textContent = state.sigma.toFixed(2);
   epsEstDisplay.textContent = epsEst.toFixed(2);
 
+  // Dynamic Accuracy KPIs from Model Evaluation
+  if (kpiAucValue && state.metrics.prAuc) {
+    kpiAucValue.textContent = state.metrics.prAuc;
+  }
+  if (kpiRecallValue && state.metrics.recallAtFpr) {
+    kpiRecallValue.textContent = state.metrics.recallAtFpr;
+  }
+
   if (state.scenario === "attack") {
-    kpiSlaValue.textContent = "24.2 ms";
+    kpiSlaValue.textContent = state.metrics.p99Latency || "24.2 ms";
   } else {
     kpiSlaValue.textContent = "19.8 ms";
   }
@@ -672,6 +713,28 @@ function renderBankTable() {
 }
 
 function updateOverviewView() {
+  if (overviewScreenedValue && state.metrics.totalScreened) {
+    overviewScreenedValue.textContent = state.metrics.totalScreened;
+  }
+  if (overviewVolumeBadge && state.metrics.totalVolume) {
+    overviewVolumeBadge.textContent = state.metrics.totalVolume;
+  }
+  if (overviewInterceptedRings && state.metrics.interceptedRings) {
+    overviewInterceptedRings.textContent = state.metrics.interceptedRings;
+  }
+  if (overviewInterceptedAmount && state.metrics.interceptedAmount) {
+    overviewInterceptedAmount.textContent = state.metrics.interceptedAmount;
+  }
+  if (overviewInterceptRate && state.metrics.interceptRate) {
+    overviewInterceptRate.textContent = state.metrics.interceptRate;
+  }
+  if (overviewLatencyValue && state.metrics.p99Latency) {
+    overviewLatencyValue.textContent = state.metrics.p99Latency;
+  }
+  if (overviewLatencySub && state.metrics.p50Latency) {
+    overviewLatencySub.textContent = `P50: ${state.metrics.p50Latency}`;
+  }
+
   overviewTimelineChartContainer.innerHTML = renderOverviewTimelineChart();
   overviewTopologyChartContainer.innerHTML = renderOverviewTopologyChart();
   renderGlobalTable();
@@ -848,6 +911,72 @@ function setupListeners() {
 }
 
 // -----------------------------------------------------------------------------
+// BACKEND DATA INGESTION ENGINE
+// -----------------------------------------------------------------------------
+async function fetchBackendTelemetry() {
+  let data = null;
+  let source = "";
+
+  // 1. Try Live API endpoint first
+  try {
+    const res = await fetch(CONFIG.apiBaseUrl + CONFIG.telemetryEndpoint, { cache: "no-store" });
+    if (res.ok) {
+      data = await res.json();
+      source = "API";
+    }
+  } catch (err) {
+    // API not reachable, try fallback static json
+  }
+
+  // 2. Try static live_data.json fallback
+  if (!data && CONFIG.fallbackJsonPath) {
+    try {
+      const res = await fetch(CONFIG.fallbackJsonPath, { cache: "no-store" });
+      if (res.ok) {
+        data = await res.json();
+        source = "JSON";
+      }
+    } catch (err) {
+      // Offline fallback
+    }
+  }
+
+  // 3. Process backend data if found
+  if (data) {
+    state.isLiveBackend = true;
+    if (backendStatusPill) {
+      backendStatusPill.className = "pill pill-green";
+      backendStatusPill.innerHTML = `<span class="pill-dot"></span>Live ML Engine (${source})`;
+    }
+
+    if (data.metrics) {
+      Object.assign(state.metrics, data.metrics);
+    }
+    if (data.bankData) {
+      Object.assign(BANK_DATA, data.bankData);
+    }
+    if (Array.isArray(data.globalTransactions) && data.globalTransactions.length > 0) {
+      GLOBAL_TRANSACTIONS.length = 0;
+      GLOBAL_TRANSACTIONS.push(...data.globalTransactions);
+    }
+    if (data.scenario && (data.scenario === "attack" || data.scenario === "payroll")) {
+      state.scenario = data.scenario;
+    }
+
+    // Refresh current view
+    if (state.activePage === "info") updateInfoView();
+    else if (state.activePage === "bank") updateBankView();
+    else if (state.activePage === "overview") updateOverviewView();
+  } else {
+    state.isLiveBackend = false;
+    if (backendStatusPill) {
+      backendStatusPill.className = "pill pill-gray";
+      backendStatusPill.innerHTML = `&bull; Standalone Mode`;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
 // INITIALIZATION
 // -----------------------------------------------------------------------------
 async function init() {
@@ -856,6 +985,12 @@ async function init() {
   updateInfoView();
   updateBankView();
   updateOverviewView();
+
+  // Ingest live backend data and initiate periodic polling
+  await fetchBackendTelemetry();
+  if (CONFIG.pollIntervalMs > 0) {
+    setInterval(fetchBackendTelemetry, CONFIG.pollIntervalMs);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

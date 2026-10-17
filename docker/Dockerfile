@@ -20,26 +20,22 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy source tree and application
 COPY src/ ./src/
-COPY app/ ./app/
+COPY frontend/ ./frontend/
 COPY benchmarks/ ./benchmarks/
 COPY docs/ ./docs/
 COPY weights/ ./weights/
 COPY results/ ./results/
 
-# Expose Streamlit default port
-EXPOSE 8501
+# Expose web interface port
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+    CMD curl -f http://localhost:8080/ || exit 1
 
 # Environment flags for hardware optimization on IBM Z (s390x) and x86
 ENV PYTHONUNBUFFERED=1 \
     OMP_NUM_THREADS=4 \
-    MKL_NUM_THREADS=4 \
-    STREAMLIT_SERVER_PORT=8501 \
-    STREAMLIT_SERVER_HEADLESS=true \
-    STREAMLIT_SERVER_ENABLE_CORS=false \
-    STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
+    MKL_NUM_THREADS=4
 
-ENTRYPOINT ["streamlit", "run", "app/dashboard.py"]
+ENTRYPOINT ["python", "-m", "http.server", "8080", "--directory", "frontend"]
