@@ -1,0 +1,59 @@
+# ZeroMule Configuration Specification
+# Designed for Confidential Computing on IBM Z / LinuxONE
+
+project:
+  name: "ZeroMule-IBM-Z-Datathon"
+  version: "0.1.0"
+  description: "Privacy-Preserving Cross-Bank Mule Ring Detection on IBM LinuxONE"
+  environment: "ibm_z_s390x"
+
+hardware:
+  target_platform: "s390x"
+  fallback_platform: "x86_64"
+  acceleration: "openblas_simd"
+  onnx_optimization_level: "all"
+  latency_sla_ms:
+    psi_lookup_p99: 2.0
+    dp_perturbation_p99: 1.0
+    gat_boundary_p99: 8.0
+    contrastive_head_p99: 5.0
+    equalized_odds_p99: 0.5
+    end_to_end_roundtrip_p99: 30.0
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  ibm_aml_file: "HI-Small_Trans.csv"
+  patterns_file: "HI-Small_Patterns.txt"
+  baf_file: "Base.csv"
+  num_silos: 3
+  silo_names: ["Bank_A", "Bank_B", "Bank_C"]
+
+model:
+  node_feature_dim: 16
+  edge_feature_dim: 24
+  hidden_dim: 64
+  num_gin_layers: 3
+  num_gat_heads: 4
+  temporal_encoding_dim: 16
+  dropout: 0.1
+  focal_loss:
+    alpha: 0.85
+    gamma: 2.0
+
+privacy:
+  psi:
+    algorithm: "HMAC-SHA256"
+    key_rotation_interval_hours: 24
+  differential_privacy:
+    clipping_norm: 1.0
+    gaussian_sigma: 0.8
+    target_epsilon: 2.0
+    target_delta: 1.0e-5
+    accounting: "renyi_dp"
+
+fairness:
+  protected_attribute: "customer_age"
+  senior_threshold_age: 65
+  disparity_metric: "equalized_odds"
+  max_tolerable_disparity: 0.015
