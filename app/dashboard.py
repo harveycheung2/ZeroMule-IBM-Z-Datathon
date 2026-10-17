@@ -297,11 +297,11 @@ elif "3." in nav_choice:
 
     # Pre-canned simulation transactions
     sample_stream = [
-        {"id": "TX_90184", "from": "ACC_000102 (Bank A)", "to": "ACC_000411 (Bank B)", "amt": "$32,500", "fmt": "Wire", "psi_ms": 1.2, "dp_ms": 0.4, "gat_ms": 11.8, "risk": 0.98, "type": "5-Hop Ring Opening"},
-        {"id": "TX_90185", "from": "ACC_000318 (Bank C)", "to": "ACC_000109 (Bank A)", "amt": "$840", "fmt": "ACH", "psi_ms": 0.9, "dp_ms": 0.3, "gat_ms": 7.4, "risk": 0.04, "type": "Payroll Benign"},
-        {"id": "TX_90186", "from": "ACC_000411 (Bank B)", "to": "ACC_000783 (Bank C)", "amt": "$31,850", "fmt": "Wire", "psi_ms": 1.1, "dp_ms": 0.4, "gat_ms": 12.1, "risk": 0.99, "type": "5-Hop Ring Relay"},
-        {"id": "TX_90187", "from": "ACC_000912 (Bank A)", "to": "ACC_000412 (Bank B)", "amt": "$2,100", "fmt": "Cheque", "psi_ms": 0.8, "dp_ms": 0.3, "gat_ms": 8.0, "risk": 0.08, "type": "Vendor Invoicing"},
-        {"id": "ACC_SCAM_ELD", "from": "ACC_000940 (Bank A)", "to": "ACC_000102 (Bank A)", "amt": "$30,000", "fmt": "Wire", "psi_ms": 1.4, "dp_ms": 0.5, "gat_ms": 13.2, "risk": 0.995, "type": "Elderly Scam Drainage Closure"},
+        {"id": "TX_90184", "from": "Account 1 (Bank A)", "to": "Account 2 (Bank B)", "amt": "$32,500", "fmt": "Wire", "psi_ms": 1.2, "dp_ms": 0.4, "gat_ms": 11.8, "risk": 0.98, "type": "Ring opening"},
+        {"id": "TX_90185", "from": "Account 6 (Bank C)", "to": "Account 7 (Bank A)", "amt": "$840", "fmt": "ACH", "psi_ms": 0.9, "dp_ms": 0.3, "gat_ms": 7.4, "risk": 0.04, "type": "Normal payroll"},
+        {"id": "TX_90186", "from": "Account 2 (Bank B)", "to": "Account 3 (Bank C)", "amt": "$31,850", "fmt": "Wire", "psi_ms": 1.1, "dp_ms": 0.4, "gat_ms": 12.1, "risk": 0.99, "type": "Ring relay"},
+        {"id": "TX_90187", "from": "Account 8 (Bank A)", "to": "Account 9 (Bank B)", "amt": "$2,100", "fmt": "Cheque", "psi_ms": 0.8, "dp_ms": 0.3, "gat_ms": 8.0, "risk": 0.08, "type": "Normal invoice"},
+        {"id": "TX_90188", "from": "Account 5 (Bank A)", "to": "Account 1 (Bank A)", "amt": "$30,000", "fmt": "Wire", "psi_ms": 1.4, "dp_ms": 0.5, "gat_ms": 13.2, "risk": 0.995, "type": "Ring closure"},
     ]
 
     selected_tx = st.selectbox("Trigger Live Transaction Event:", [f"{tx['id']} - {tx['from']} -> {tx['to']} ({tx['amt']})" for tx in sample_stream])
