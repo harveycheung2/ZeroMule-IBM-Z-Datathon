@@ -131,7 +131,7 @@ with col_h1:
     st.markdown('<div class="main-title">🛡️ ZeroMule: Cross-Bank AML Detection</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-title">Privacy-Preserving Directed-GIN & HMAC matching Enclave on IBM Z LinuxONE</div>', unsafe_allow_html=True)
 with col_h2:
-    st.markdown("""
+    st.markdown(r"""
     <div style="text-align: right; padding-top: 10px;">
         <span class="badge-enclave">SIMULATED ENCLAVE</span>
         <span class="badge-silo" style="margin-left: 5px;">s390x ACCELERATED</span>
@@ -146,7 +146,7 @@ st.markdown("---")
 # ==========================================
 if "1." in nav_choice:
     st.subheader("🏦 Panel 1: The Banking Silo View (Single-Bank Blind Spot)")
-    st.markdown("""
+    st.markdown(r"""
     When financial institutions operate in isolation, criminal syndicates intentionally fragment transactions
     across multiple banks (**smurfing**). Each isolated bank only sees **single-hop, normal transactions** and
     triggers **zero alerts** (PR-AUC $\le 0.45$).
@@ -187,11 +187,11 @@ if "1." in nav_choice:
                 {"Time": "11:32 AM", "From": "ACC_000411 (Bank B)", "To": "ACC_000783 (Bank C)", "Amount": "$31,850", "Format": "Wire", "Status": "RECEIVED", "Local Risk": "0.11"},
                 {"Time": "01:15 PM", "From": "ACC_000783 (Bank C)", "To": "ACC_000102 (Bank A)", "Amount": "$30,900", "Format": "Wire", "Status": "APPROVED", "Local Risk": "0.15"},
             ])
-        st.dataframe(silo_df, use_container_width=True)
+        st.dataframe(silo_df, width="stretch")
 
     with col_view2:
         st.markdown("#### 🚫 The Silo Dilemma")
-        st.markdown("""
+        st.markdown(r"""
         - **Regulatory Restriction**: Privacy laws (GDPR, GLBA) prohibit banks from broadcasting unencrypted customer ledgers or balances to competitors.
         - **Adversary Advantage**: Laundering syndicates exploit this legal boundary by hopping funds across $\ge 3$ distinct routing codes.
         - **The Solution**: **ZeroMule** uses HMAC pseudonym matching + Differential Privacy in a coordinator simulation. Hardware isolation and attestation require a separate deployment; topology remains visible.
@@ -203,7 +203,7 @@ if "1." in nav_choice:
 # ==========================================
 elif "2." in nav_choice:
     st.subheader("🛡️ Panel 2: The IBM Enclave Subgraph Reconstruction")
-    st.markdown("""
+    st.markdown(r"""
     In this software simulation, **ZeroMule** matches HMAC pseudonyms (not cryptographic PSI)
     and reconstructs the cross-bank directed multigraph with $(\epsilon=2.0, \delta=10^{-5})$ Differentially Private embeddings.
     """)
@@ -346,16 +346,16 @@ elif "4." in nav_choice:
         st.markdown("Cross-Bank Directed-GIN Enclave (**PR-AUC = 0.892**) vs Isolated Baselines (**PR-AUC = 0.384**).")
         p1 = plots_dir / "pr_auc_comparison.png"
         if p1.exists():
-            st.image(str(p1), use_column_width=True)
+            st.image(str(p1), width="stretch")
         else:
             st.info("Run `python -m src.evaluation.generate_metrics` to generate plots.")
 
     with tab_eval2:
         st.markdown("#### 🛡️ Privacy-Utility Retention Across Epsilon")
-        st.markdown("Quantifies PR-AUC preservation under Rényi Differential Privacy bounds $\epsilon \in [0.5, 8.0]$.")
+        st.markdown(r"Quantifies PR-AUC preservation under Rényi Differential Privacy bounds $\epsilon \in [0.5, 8.0]$.")
         p2 = plots_dir / "privacy_utility_curve.png"
         if p2.exists():
-            st.image(str(p2), use_column_width=True)
+            st.image(str(p2), width="stretch")
         else:
             st.info("Run `python -m src.evaluation.generate_metrics` to generate plots.")
 
@@ -364,15 +364,15 @@ elif "4." in nav_choice:
         st.markdown("Cumulative distribution proving deterministic execution under the **30ms P99 SLA**.")
         p3 = plots_dir / "latency_cdf.png"
         if p3.exists():
-            st.image(str(p3), use_column_width=True)
+            st.image(str(p3), width="stretch")
         else:
             st.info("Run `benchmarks/latency_profiler.py` to benchmark latency.")
 
     with tab_eval4:
         st.markdown("#### ⚖️ Equalized-Odds Demographic Calibration (NeurIPS BAF)")
-        st.markdown("Eliminating false positive lockout disparity on elderly accounts ($\text{Age} \ge 65$) while preserving 100% scam catch recall.")
+        st.markdown(r"Eliminating false positive lockout disparity on elderly accounts ($\text{Age} \ge 65$) while preserving 100% scam catch recall.")
         p4 = plots_dir / "fairness_parity.png"
         if p4.exists():
-            st.image(str(p4), use_column_width=True)
+            st.image(str(p4), width="stretch")
         else:
             st.info("Run `python -m src.evaluation.fairness_tuner` to generate plots.")
