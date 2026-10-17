@@ -1,117 +1,106 @@
-"""
-Differentially Private (DP) Perturbation Layer & RDP Privacy Accountant.
-
-Implements L2-norm embedding clipping, Gaussian noise injection, and
-Rényi Differential Privacy (RDP) accounting to strictly guarantee (epsilon, delta)-DP
-for boundary node embeddings shared with the central coordinator.
-"""
+"""Gaussian mechanism and RDP calculations. Release enforcement lives in budget.py."""
 
 import math
-from typing import Tuple, Union, Optional
+import secrets
+from statistics import NormalDist
 import numpy as np
+
+ORDERS = np.arange(2.0, 257.0)
+MAX_EPSILON = 2.0
+DELTA = 1e-5
+
+
+def positive(value, name):
+    value = float(value)
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError(f"{name} must be finite and positive")
+    return value
+
+
+def epsilon_for_rho(rho, delta=DELTA, orders=ORDERS):
+    if rho == 0:
+        return 0.0
+    return float(np.min(orders * rho + math.log(1 / delta) / (orders - 1)))
 
 
 class DPPerturbation:
+    """Clip the entire fixed-shape release to C; replacement sensitivity is 2C.
+
+    Gaussian draws use OS randomness, with no deterministic production seed.
+    This numerical mechanism does not protect the identity roster or topology.
     """
-    Applies L2-norm clipping and calibrated Gaussian perturbation to node representations.
-    """
 
-    def __init__(self, clip_norm: float = 1.0, sigma: float = 1.25, seed: Optional[int] = 42):
-        """
-        Args:
-            clip_norm: L2 sensitivity clipping threshold C (default: 1.0)
-            sigma: Noise multiplier sigma = std_dev / (C)
-            seed: Optional random seed for reproducibility
-        """
-        self.clip_norm = float(clip_norm)
-        self.sigma = float(sigma)
-        self.rng = np.random.default_rng(seed)
+    def __init__(self, clip_norm=1.0, sigma=8.0):
+        self.clip_norm = positive(clip_norm, "clip_norm")
+        self.sigma = positive(sigma, "sigma")
+        positive(2 * self.clip_norm * self.sigma, "noise_std")
 
-    def clip_embeddings(self, embeddings: np.ndarray) -> np.ndarray:
-        """
-        Clip node embeddings using L2 sensitivity threshold C:
-        Clip(h_v, C) = h_v / max(1, ||h_v||_2 / C)
-        """
-        norms = np.linalg.norm(embeddings, ord=2, axis=-1, keepdims=True)
-        scaling_factor = np.maximum(1.0, norms / self.clip_norm)
-        return embeddings / scaling_factor
+    def clip_embeddings(self, embeddings):
+        matrix = np.array(embeddings, dtype=np.float64, copy=True)
+        if matrix.ndim != 2 or not matrix.size or not np.isfinite(matrix).all():
+            raise ValueError("Embeddings must be a nonempty finite matrix")
+        # Scale before computing norm to avoid overflow on large finite inputs.
+        maximum = float(np.max(np.abs(matrix)))
+        if maximum == 0:
+            return matrix
+        unit = matrix / maximum
+        unit_norm = np.linalg.norm(unit)
+        if maximum > self.clip_norm / unit_norm:
+            return unit * (self.clip_norm / unit_norm)
+        return matrix
 
-    def perturb_embeddings(self, embeddings: np.ndarray) -> Tuple[np.ndarray, dict]:
-        """
-        Clip embeddings and inject Gaussian noise:
-        h_tilde = Clip(h_v, C) + N(0, (sigma * C)^2 * I)
-
-        Returns:
-            perturbed_embeddings: ndarray with added Gaussian noise
-            metadata: dict with clipping metrics and noise magnitude
-        """
+    def perturb_embeddings(self, embeddings):
         clipped = self.clip_embeddings(embeddings)
-        noise_std = self.sigma * self.clip_norm
-        noise = self.rng.normal(loc=0.0, scale=noise_std, size=clipped.shape)
-        perturbed = clipped + noise
-
-        metadata = {
-            "clip_norm_C": self.clip_norm,
-            "sigma": self.sigma,
-            "noise_std": noise_std,
-            "avg_original_norm": float(np.mean(np.linalg.norm(embeddings, axis=-1))),
-            "avg_clipped_norm": float(np.mean(np.linalg.norm(clipped, axis=-1))),
-            "avg_perturbed_norm": float(np.mean(np.linalg.norm(perturbed, axis=-1))),
-        }
-        return perturbed, metadata
+        std = 2 * self.clip_norm * self.sigma
+        normal = NormalDist()
+        # Midpoints on an OS-random 52-bit uniform grid avoid inverse-CDF endpoints.
+        noise = np.fromiter((normal.inv_cdf((secrets.randbits(52) + 0.5) / 2**52)
+                             for _ in range(clipped.size)), dtype=float).reshape(clipped.shape)
+        perturbed = clipped + std * noise
+        if not np.isfinite(perturbed).all():
+            raise ValueError("Nonfinite protected embedding")
+        return perturbed, {"clip_norm_C": self.clip_norm, "sigma": self.sigma,
+                           "noise_std": std}
 
 
 class RDPAccountant:
-    """
-    Rényi Differential Privacy (RDP) Accountant for Gaussian Mechanism.
-    Computes cumulative (epsilon, delta)-DP bounds across multiple composition rounds.
-    """
+    """Calculation utility only; cannot authorize exports or reset a release ledger."""
 
-    def __init__(self, orders: Optional[np.ndarray] = None):
-        if orders is None:
-            self.orders = np.linspace(1.1, 64.0, 100)
-        else:
-            self.orders = np.array(orders)
-        self.rdp = np.zeros_like(self.orders, dtype=float)
+    def __init__(self, orders=None):
+        self.orders = np.array(ORDERS if orders is None else orders, dtype=float)
+        if self.orders.ndim != 1 or not self.orders.size or not np.isfinite(self.orders).all() or np.any(self.orders <= 1):
+            raise ValueError("RDP orders must be finite and greater than one")
+        self.rdp = np.zeros_like(self.orders)
 
-    def step(self, sigma: float, steps: int = 1):
-        """
-        Accumulates privacy budget consumption for Gaussian mechanism.
-        For order alpha and noise multiplier sigma:
-        RDP_alpha = alpha / (2 * sigma^2)
-        """
-        step_rdp = self.orders / (2.0 * (sigma ** 2))
-        self.rdp += steps * step_rdp
+    def step(self, sigma, steps=1):
+        sigma = positive(sigma, "sigma")
+        if type(steps) is not int or steps < 1:
+            raise ValueError("steps must be a positive integer")
+        self.rdp += steps * self.orders * (0.5 / sigma / sigma)
 
-    def get_privacy_spent(self, target_delta: float = 1e-5) -> Tuple[float, float, float]:
-        """
-        Converts accumulated RDP to (epsilon, delta)-DP using the standard RDP-to-DP conversion:
-        epsilon(delta) = min_{alpha > 1} ( RDP(alpha) + log(1/delta) / (alpha - 1) )
+    def get_privacy_spent(self, target_delta=DELTA):
+        if not 0 < target_delta < 1:
+            raise ValueError("delta must be between zero and one")
+        values = self.rdp + math.log(1 / target_delta) / (self.orders - 1)
+        index = int(np.argmin(values))
+        return (float(values[index]) if np.any(self.rdp) else 0.0,
+                float(target_delta), float(self.orders[index]))
 
-        Returns:
-            optimal_eps: Minimum epsilon achieved
-            target_delta: The specified delta
-            best_order: The optimal Rényi order alpha
-        """
-        epsilons = self.rdp + np.log(1.0 / target_delta) / (self.orders - 1.0)
-        best_idx = np.argmin(epsilons)
-        return float(epsilons[best_idx]), float(target_delta), float(self.orders[best_idx])
-
-    def calibrate_sigma(
-        self, target_eps: float = 2.0, target_delta: float = 1e-5, steps: int = 1
-    ) -> float:
-        """
-        Finds the minimum sigma required to satisfy target_eps at target_delta for given steps.
-        Uses binary search over sigma.
-        """
-        low_sigma, high_sigma = 0.1, 20.0
-        for _ in range(50):
-            mid_sigma = (low_sigma + high_sigma) / 2.0
-            test_accountant = RDPAccountant(self.orders)
-            test_accountant.step(mid_sigma, steps=steps)
-            eps, _, _ = test_accountant.get_privacy_spent(target_delta)
-            if eps <= target_eps:
-                high_sigma = mid_sigma
+    def calibrate_sigma(self, target_eps=MAX_EPSILON, target_delta=DELTA, steps=1):
+        positive(target_eps, "target_eps")
+        low, high = 0.0, 1.0
+        def spent(sigma):
+            test = RDPAccountant(self.orders)
+            test.step(sigma, steps)
+            return test.get_privacy_spent(target_delta)[0]
+        while spent(high) > target_eps:
+            high *= 2
+            if not math.isfinite(high):
+                raise ValueError("Cannot calibrate requested budget")
+        for _ in range(80):
+            mid = (low + high) / 2
+            if spent(mid) <= target_eps:
+                high = mid
             else:
-                low_sigma = mid_sigma
-        return high_sigma
+                low = mid
+        return high
