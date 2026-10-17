@@ -1,0 +1,27 @@
+# ZeroMule Core Dependencies
+torch>=2.1.0
+torch-geometric>=2.4.0; sys_platform != "win32" or python_version < "3.12"
+lightgbm>=4.0.0
+scikit-learn>=1.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+networkx>=3.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+
+# Privacy & Confidential Enclave Layer
+opacus>=1.4.0; python_version < "3.12"
+cryptography>=41.0.0
+
+# Hardware Acceleration & Mainframe Inference (IBM Z / LinuxONE)
+onnx>=1.14.0
+onnxruntime>=1.16.0
+
+# Interactive Dashboard & Visualizations
+streamlit>=1.30.0
+pyvis>=0.3.2
+
+# Testing & Profiling
+pytest>=7.4.0
+tqdm>=4.66.0
+python-dotenv>=1.0.0
