@@ -1,11 +1,12 @@
 /**
- * ZeroMule — Interactive Frontend Logic
+ * ZeroMule — Interactive Frontend Logic for Fraud & Mule Ring Detection
+ * Architecture: Directed-GIN, Salted PSI, Differential Privacy on IBM LinuxONE (s390x)
  * Design System: Apple WWDC Principles (Response, Interruption, Physical Feedback)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
-  // 1. Interactive Tab Switching & Dynamic Chart Updates
+  // 1. Interactive Tab Switching & Dynamic AML Enclave Chart Updates
   // =========================================================================
   const reportTabs = document.querySelectorAll('.report-tab');
   const chartBarsGroup = document.getElementById('chartBarsGroup');
@@ -16,7 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const tooltipSub = document.getElementById('tooltipSub');
   const chartCanvasArea = document.getElementById('chartCanvasArea');
 
-  // Datasets per tab
+  // Summary Cell Elements
+  const summaryCells = document.querySelectorAll('.summary-metric-cell');
+
+  // AML Datasets per Tab
   const tabDatasets = {
     flow: {
       bars: [
@@ -29,69 +33,93 @@ document.addEventListener('DOMContentLoaded', () => {
       ],
       spline: "M 46 112 Q 100 110, 161 114 T 271 115 T 382 205 T 481 114 T 571 105",
       dots: [
-        { cx: 46, cy: 112, r: 3.5, label: "Oct 25", val: "-15 tCO2e", sub: "Standard Flow" },
-        { cx: 161, cy: 114, r: 3.5, label: "Nov 25", val: "-12 tCO2e", sub: "Standard Flow" },
-        { cx: 271, cy: 115, r: 3.5, label: "Dec 25", val: "-10 tCO2e", sub: "Standard Flow" },
-        { cx: 382, cy: 205, r: 4.5, label: "Jan 2026", val: "-480 tCO2e (Intercepted)", sub: "Mule Ring #104 • 24.8ms P99", crit: true },
-        { cx: 481, cy: 114, r: 3.5, label: "Feb 2026", val: "-12 tCO2e", sub: "Stabilized Flow" },
-        { cx: 571, cy: 105, r: 3.5, label: "Mar 2026", val: "+30 tCO2e (Cleared)", sub: "Benign Inbound" }
+        { cx: 46, cy: 112, r: 3.5, label: "Oct 25", val: "$34,200 Screened", sub: "Risk: 0.08 • Benign" },
+        { cx: 161, cy: 114, r: 3.5, label: "Nov 25", val: "$41,500 Screened", sub: "Risk: 0.12 • Benign" },
+        { cx: 271, cy: 115, r: 3.5, label: "Dec 25", val: "$58,900 Screened", sub: "Risk: 0.15 • Normal" },
+        { cx: 382, cy: 205, r: 4.5, label: "Jan 26", val: "$280,000 Ring #104", sub: "Risk: 0.94 • FROZEN (<25ms)", crit: true },
+        { cx: 481, cy: 114, r: 3.5, label: "Feb 26", val: "$36,400 Screened", sub: "Risk: 0.09 • Clear" },
+        { cx: 571, cy: 105, r: 3.5, label: "Mar 26", val: "$48,100 Screened", sub: "Risk: 0.07 • Clear" }
+      ],
+      summary: [
+        { label: "Total Screened", val: "1,284,520", unit: "tx" },
+        { label: "Boundary Intersections", val: "744", unit: "nodes" },
+        { label: "Laundering Prevented", val: "$540,200", unit: "USD" },
+        { label: "P99 Inference SLA", val: "24.8", unit: "ms" }
       ]
     },
-    reductions: {
+    mules: {
       bars: [
         { x: 35, y: 80, h: 40, class: 'bar-primary' },
         { x: 150, y: 70, h: 50, class: 'bar-primary' },
         { x: 260, y: 65, h: 55, class: 'bar-primary' },
-        { x: 370, y: 50, h: 70, class: 'bar-accent' },
-        { x: 470, y: 45, h: 75, class: 'bar-primary' },
-        { x: 560, y: 40, h: 80, class: 'bar-light' }
+        { x: 370, y: 40, h: 80, class: 'bar-accent' },
+        { x: 470, y: 55, h: 65, class: 'bar-primary' },
+        { x: 560, y: 60, h: 60, class: 'bar-light' }
       ],
-      spline: "M 46 80 Q 100 75, 161 70 T 271 65 T 382 50 T 481 45 T 571 40",
+      spline: "M 46 80 Q 100 75, 161 70 T 271 65 T 382 40 T 481 55 T 571 60",
       dots: [
-        { cx: 46, cy: 80, r: 3.5, label: "Oct 25", val: "40 tCO2e Reduction", sub: "Optimized Baseline" },
-        { cx: 161, cy: 70, r: 3.5, label: "Nov 25", val: "50 tCO2e Reduction", sub: "Process Efficiency" },
-        { cx: 271, cy: 65, r: 3.5, label: "Dec 25", val: "55 tCO2e Reduction", sub: "Optimized Baseline" },
-        { cx: 382, cy: 50, r: 4.5, label: "Jan 2026", val: "70 tCO2e Reduction", sub: "Peak Efficiency" },
-        { cx: 481, cy: 45, r: 3.5, label: "Feb 2026", val: "75 tCO2e Reduction", sub: "Maintained Savings" },
-        { cx: 571, cy: 40, r: 3.5, label: "Mar 2026", val: "80 tCO2e Reduction", sub: "Target Reached" }
+        { cx: 46, cy: 80, r: 3.5, label: "Oct 25", val: "6 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.88" },
+        { cx: 161, cy: 70, r: 3.5, label: "Nov 25", val: "8 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.89" },
+        { cx: 271, cy: 65, r: 3.5, label: "Dec 25", val: "9 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.89" },
+        { cx: 382, cy: 40, r: 4.5, label: "Jan 26", val: "14 Mule Cycles Intercepted", sub: "Ring Solved: 95.6% Recall", crit: true },
+        { cx: 481, cy: 55, r: 3.5, label: "Feb 26", val: "6 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.90" },
+        { cx: 571, cy: 60, r: 3.5, label: "Mar 26", val: "5 Mule Cycles", sub: "Cross-Bank PR-AUC: 0.91" }
+      ],
+      summary: [
+        { label: "Active Rings Solved", val: "48", unit: "rings" },
+        { label: "Mule Ring Recall", val: "95.6%", unit: "resolved" },
+        { label: "Isolated Bank Miss Rate", val: "78.2%", unit: "blind spot" },
+        { label: "Model PR-AUC", val: "0.892", unit: "enclave" }
       ]
     },
-    offsets: {
+    boundaries: {
       bars: [
         { x: 35, y: 95, h: 25, class: 'bar-primary' },
         { x: 150, y: 90, h: 30, class: 'bar-primary' },
         { x: 260, y: 85, h: 35, class: 'bar-primary' },
-        { x: 370, y: 120, h: 35, class: 'bar-accent' },
+        { x: 370, y: 75, h: 45, class: 'bar-accent' },
         { x: 470, y: 90, h: 30, class: 'bar-primary' },
-        { x: 560, y: 80, h: 40, class: 'bar-light' }
+        { x: 560, y: 85, h: 35, class: 'bar-light' }
       ],
-      spline: "M 46 95 Q 100 92, 161 90 T 271 85 T 382 145 T 481 90 T 571 80",
+      spline: "M 46 95 Q 100 92, 161 90 T 271 85 T 382 75 T 481 90 T 571 85",
       dots: [
-        { cx: 46, cy: 95, r: 3.5, label: "Oct 25", val: "120 tCO2e Offset", sub: "Certified Green Credits" },
-        { cx: 161, cy: 90, r: 3.5, label: "Nov 25", val: "140 tCO2e Offset", sub: "Solar Investment" },
-        { cx: 271, cy: 85, r: 3.5, label: "Dec 25", val: "160 tCO2e Offset", sub: "Wind Capacity" },
-        { cx: 382, cy: 145, r: 4.5, label: "Jan 2026", val: "220 tCO2e Offset", sub: "High Activity Buffer" },
-        { cx: 481, cy: 90, r: 3.5, label: "Feb 2026", val: "150 tCO2e Offset", sub: "Certified Credits" },
-        { cx: 571, cy: 80, r: 3.5, label: "Mar 2026", val: "180 tCO2e Offset", sub: "Sustained Compliance" }
+        { cx: 46, cy: 95, r: 3.5, label: "Oct 25", val: "112 Intersections", sub: "Salted HMAC-SHA256 Match" },
+        { cx: 161, cy: 90, r: 3.5, label: "Nov 25", val: "128 Intersections", sub: "Salted HMAC-SHA256 Match" },
+        { cx: 271, cy: 85, r: 3.5, label: "Dec 25", val: "144 Intersections", sub: "Salted HMAC-SHA256 Match" },
+        { cx: 382, cy: 75, r: 4.5, label: "Jan 26", val: "182 Intersections", sub: "Peak Smurfing Overlap", crit: true },
+        { cx: 481, cy: 90, r: 3.5, label: "Feb 26", val: "96 Intersections", sub: "Salted HMAC-SHA256 Match" },
+        { cx: 571, cy: 85, r: 3.5, label: "Mar 26", val: "82 Intersections", sub: "Salted HMAC-SHA256 Match" }
+      ],
+      summary: [
+        { label: "Boundary Counterparties", val: "744", unit: "hashes" },
+        { label: "PII Exposed", val: "0", unit: "bytes (Zero-Leak)" },
+        { label: "DP Perturbation (ε)", val: "1.42 / 2.0", unit: "RDP" },
+        { label: "PSI Set Match Time", val: "1.18", unit: "ms" }
       ]
     },
-    transfers: {
+    latencies: {
       bars: [
-        { x: 35, y: 110, h: 10, class: 'bar-primary' },
-        { x: 150, y: 110, h: 10, class: 'bar-primary' },
-        { x: 260, y: 105, h: 15, class: 'bar-primary' },
-        { x: 370, y: 120, h: 80, class: 'bar-accent' },
-        { x: 470, y: 112, h: 8, class: 'bar-primary' },
-        { x: 560, y: 100, h: 20, class: 'bar-light' }
+        { x: 35, y: 115, h: 10, class: 'bar-primary' },
+        { x: 150, y: 116, h: 8, class: 'bar-primary' },
+        { x: 260, y: 95, h: 25, class: 'bar-primary' },
+        { x: 370, y: 70, h: 50, class: 'bar-accent' },
+        { x: 470, y: 110, h: 12, class: 'bar-primary' },
+        { x: 560, y: 65, h: 55, class: 'bar-light' }
       ],
-      spline: "M 46 110 Q 100 110, 161 110 T 271 105 T 382 195 T 481 112 T 571 100",
+      spline: "M 46 115 Q 100 115, 161 116 T 271 95 T 382 70 T 481 110 T 571 65",
       dots: [
-        { cx: 46, cy: 110, r: 3.5, label: "Oct 25", val: "$14,000 Volume", sub: "Cross-Bank ACH" },
-        { cx: 161, cy: 110, r: 3.5, label: "Nov 25", val: "$18,500 Volume", sub: "Cross-Bank Wire" },
-        { cx: 271, cy: 105, r: 3.5, label: "Dec 25", val: "$22,000 Volume", sub: "Inter-Bank Fedwire" },
-        { cx: 382, cy: 195, r: 4.5, label: "Jan 2026", val: "$280,000 Smurfed Ring", sub: "Pre-Settlement Scam Freeze", crit: true },
-        { cx: 481, cy: 112, r: 3.5, label: "Feb 2026", val: "$16,200 Volume", sub: "Normal Velocity" },
-        { cx: 571, cy: 100, r: 3.5, label: "Mar 2026", val: "$31,000 Volume", sub: "Settled Clear" }
+        { cx: 46, cy: 115, r: 3.5, label: "Stage 1: PSI", val: "1.18 ms (P99)", sub: "Cryptographic Lookup" },
+        { cx: 161, cy: 116, r: 3.5, label: "Stage 2: DP", val: "0.42 ms (P99)", sub: "L2 Clip & Noise" },
+        { cx: 271, cy: 95, r: 3.5, label: "Stage 3: GAT", val: "6.80 ms (P99)", sub: "Boundary Attention" },
+        { cx: 382, cy: 70, r: 4.5, label: "Stage 4: Head", val: "4.10 ms (P99)", sub: "Contrastive MLP Head", crit: true },
+        { cx: 481, cy: 110, r: 3.5, label: "Stage 5: Fair", val: "0.10 ms (P99)", sub: "Equalized-Odds Gate" },
+        { cx: 571, cy: 65, r: 3.5, label: "Roundtrip", val: "24.80 ms (P99)", sub: "Target < 30ms PASSED" }
+      ],
+      summary: [
+        { label: "P50 Round-Trip", val: "13.45", unit: "ms" },
+        { label: "P90 Latency", val: "19.20", unit: "ms" },
+        { label: "P99 Hardware SLA", val: "24.80", unit: "ms (< 30ms)" },
+        { label: "LinuxONE Platform", val: "s390x", unit: "CPACF SIMD" }
       ]
     }
   };
@@ -111,6 +139,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update spline
     splinePath.setAttribute('d', data.spline);
+
+    // Update summary cells
+    if (data.summary && summaryCells.length === 4) {
+      data.summary.forEach((item, idx) => {
+        const cell = summaryCells[idx];
+        const labelEl = cell.querySelector('.cell-label');
+        const valEl = cell.querySelector('.cell-val');
+        if (labelEl) labelEl.textContent = item.label;
+        if (valEl) {
+          valEl.innerHTML = `${item.val} <span class="unit">${item.unit}</span>`;
+        }
+      });
+    }
 
     // Update or re-bind hoverable dots
     const existingDots = chartCanvasArea.querySelectorAll('.spline-dot');
@@ -133,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tooltipValue.textContent = dot.val;
         tooltipSub.textContent = dot.sub;
 
-        chartTooltip.style.left = `${Math.min(Math.max(ptX - 60, 10), rect.width - 150)}px`;
+        chartTooltip.style.left = `${Math.min(Math.max(ptX - 60, 10), rect.width - 160)}px`;
         chartTooltip.style.top = `${Math.max(ptY - 55, 10)}px`;
         chartTooltip.classList.add('visible');
       });
@@ -160,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tooltipValue.textContent = dot.val;
           tooltipSub.textContent = dot.sub;
 
-          chartTooltip.style.left = `${Math.min(Math.max(ptX - 60, 10), rect.width - 150)}px`;
+          chartTooltip.style.left = `${Math.min(Math.max(ptX - 60, 10), rect.width - 160)}px`;
           chartTooltip.style.top = `${Math.max(ptY - 55, 10)}px`;
           chartTooltip.classList.add('visible');
         }
@@ -187,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // =========================================================================
-  // 2. Interactive AI Assistant / Chat Copilot
+  // 2. Interactive AI Assistant / Enclave AML Copilot
   // =========================================================================
   const chatInput = document.getElementById('chatInput');
   const chatSendBtn = document.getElementById('chatSendBtn');
@@ -198,12 +239,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectedModelLabel = document.getElementById('selectedModelLabel');
   const modelOptions = document.querySelectorAll('.model-option');
 
-  // Intelligent Context-Aware AI Responses
+  // ZeroMule AML Domain Knowledge Base
   const aiKnowledgeBase = {
-    travel: "Analysis indicates a 14% increase in Travel-related scope emissions due to global executive roadshows in Q1. In ZeroMule's cross-bank lens, cross-border counterparty travel bookings correlated with rapid multi-hop wire settlement transfers.",
-    scope3: "Scope 3 emissions rose primarily due to external supply chain manufacturing updates in Category 1 (Purchased Goods). Mitigation actions include supplier compliance audits and automated differential privacy accounting.",
-    ring104: "Mule Ring #104 was flagged within 24.8ms on IBM LinuxONE: 4 accounts cycled $280,000 across Bank A -> Bank B -> Bank C with a 0.94 Directed-GIN anomaly score. Equalized-Odds thresholding confirmed zero elderly false-positive freeze.",
-    default: "Telemetry verified on IBM Z / LinuxONE Secure Execution Enclave. All cryptographic PSI lookups completed in 1.18ms with active Rényi Differential Privacy budget (ε=2.0, δ=1e-5)."
+    ring104: "Mule Ring #104 was flagged within 24.8ms on IBM LinuxONE: 4 accounts cycled $280,000 across Bank A -> Bank B -> Bank C with a 0.94 Directed-GIN anomaly score. Equalized-Odds thresholding confirmed zero elderly false-positive lockouts, holding illicit funds prior to inter-bank clearing.",
+    psi: "Salted HMAC-SHA256 PSI computes cryptographic hash intersections across participant ledgers using an ephemeral salt agreed upon via key exchange. Participating banks never broadcast internal account IDs, customer balances, or PII—only blind boundary hashes match in the secure enclave.",
+    fairness: "ZeroMule applies Equalized-Odds threshold calibration on the NeurIPS Bank Account Fraud (BAF) suite. This calibrates group-specific decision gates: |FPR(Senior >= 65) - FPR(Standard)| <= 0.015. Senior accounts are shielded from scam lockouts with an empirical parity gap of only 0.2%.",
+    latency: "Hardware profiling on IBM LinuxONE (s390x) verifies: Stage 1 (PSI: 1.18ms) + Stage 2 (DP Noise: 0.42ms) + Stage 3 (GAT + Contrastive Head: 11.85ms) = 24.8ms P99 roundtrip. This strictly satisfies the 30ms pre-settlement SLA constraint.",
+    default: "Enclave Telemetry active on IBM LinuxONE s390x Secure Execution. Differential Privacy budget: ε=1.42 / 2.0 (δ=10⁻⁵). 48 multi-bank circular rings solved with zero PII leakage."
   };
 
   function appendChatMessage(sender, text) {
@@ -225,18 +267,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Determine Response
     let responseText = aiKnowledgeBase.default;
     const lower = text.toLowerCase();
-    if (lower.includes('travel')) {
-      responseText = aiKnowledgeBase.travel;
-    } else if (lower.includes('scope 3') || lower.includes('quarter')) {
-      responseText = aiKnowledgeBase.scope3;
-    } else if (lower.includes('ring') || lower.includes('spike') || lower.includes('104')) {
+    if (lower.includes('104') || lower.includes('frozen') || lower.includes('mule ring')) {
       responseText = aiKnowledgeBase.ring104;
+    } else if (lower.includes('psi') || lower.includes('pii') || lower.includes('leakage') || lower.includes('hash')) {
+      responseText = aiKnowledgeBase.psi;
+    } else if (lower.includes('fairness') || lower.includes('senior') || lower.includes('elderly') || lower.includes('parity')) {
+      responseText = aiKnowledgeBase.fairness;
+    } else if (lower.includes('latency') || lower.includes('s390x') || lower.includes('sla') || lower.includes('speed')) {
+      responseText = aiKnowledgeBase.latency;
     }
 
     // Simulate Natural AI Response Typing
     setTimeout(() => {
       appendChatMessage('ai', responseText);
-    }, 350);
+    }, 280);
   }
 
   // Click on Suggested Prompt Chips

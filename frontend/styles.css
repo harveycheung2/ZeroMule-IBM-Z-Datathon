@@ -1091,6 +1091,13 @@ button:active, .nav-item:active, .report-tab:active, .prompt-chip:active {
 .neg-text { color: var(--accent-danger); }
 .pos-text { color: var(--accent-mint); }
 
+.rate-sub {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-left: 2px;
+}
+
 /* Scope Columns Container */
 .scope-columns-container {
   display: grid;
