@@ -240,31 +240,30 @@ elif "2." in nav_choice:
     try:
         from pyvis.network import Network
         net = Network(height="450px", width="100%", bgcolor="#161616", font_color="#FFFFFF", directed=True)
-        net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=120)
 
         # Nodes
-        net.add_node("ACC_000102", label="Bank A\nAccount 1", color="#DA1E28", size=28, x=-420, y=0, title="Bank A: starting point")
-        net.add_node("ACC_000411", label="Bank B\nAccount 2", color="#DA1E28", size=25, x=-210, y=0, title="Bank B: first hop")
-        net.add_node("ACC_000783", label="Bank C\nAccount 3", color="#DA1E28", size=25, x=0, y=0, title="Bank C: second hop")
-        net.add_node("ACC_000215", label="Bank B\nAccount 4", color="#DA1E28", size=25, x=210, y=0, title="Bank B: third hop")
-        net.add_node("ACC_000940", label="Bank A\nAccount 5", color="#DA1E28", size=25, x=420, y=0, title="Bank A: loop closes")
+        net.add_node("ACC_000102", label="Bank A\nAccount 1", color="#DA1E28", size=25, x=-500, y=0, title="Bank A: starting point")
+        net.add_node("ACC_000411", label="Bank B\nAccount 2", color="#DA1E28", size=22, x=-250, y=0, title="Bank B: first hop")
+        net.add_node("ACC_000783", label="Bank C\nAccount 3", color="#DA1E28", size=22, x=0, y=0, title="Bank C: second hop")
+        net.add_node("ACC_000215", label="Bank B\nAccount 4", color="#DA1E28", size=22, x=250, y=0, title="Bank B: third hop")
+        net.add_node("ACC_000940", label="Bank A\nAccount 5", color="#DA1E28", size=22, x=500, y=0, title="Bank A: loop closes")
 
         # Benign background nodes
-        net.add_node("ACC_BENIGN_1", label="Normal payment\nBank A", color="#0062FF", size=18, x=-180, y=180)
-        net.add_node("ACC_BENIGN_2", label="Normal payment\nBank B", color="#0062FF", size=18, x=0, y=180)
-        net.add_node("ACC_BENIGN_3", label="Normal payment\nBank C", color="#0062FF", size=18, x=180, y=180)
+        net.add_node("ACC_BENIGN_1", label="Normal payment\nBank A", color="#0062FF", size=16, x=-250, y=190)
+        net.add_node("ACC_BENIGN_2", label="Normal payment\nBank B", color="#0062FF", size=16, x=0, y=190)
+        net.add_node("ACC_BENIGN_3", label="Normal payment\nBank C", color="#0062FF", size=16, x=250, y=190)
 
         # Circular mule ring edges
         net.add_edge("ACC_000102", "ACC_000411", label="$32.5k", color="#FF8389", width=4)
         net.add_edge("ACC_000411", "ACC_000783", label="$31.9k", color="#FF8389", width=4)
         net.add_edge("ACC_000783", "ACC_000215", label="$31.2k", color="#FF8389", width=4)
         net.add_edge("ACC_000215", "ACC_000940", label="$30.6k", color="#FF8389", width=4)
-        net.add_edge("ACC_000940", "ACC_000102", label="returns", color="#DA1E28", width=5)
+        net.add_edge("ACC_000940", "ACC_000102", label="", color="#DA1E28", width=5)
 
         # Benign linear edges
         net.add_edge("ACC_BENIGN_1", "ACC_BENIGN_2", label="normal", color="#525252", width=1)
         net.add_edge("ACC_BENIGN_2", "ACC_BENIGN_3", label="normal", color="#525252", width=1)
-        net.set_options('{"physics": {"enabled": false}, "interaction": {"hover": true}, "edges": {"arrows": {"to": {"enabled": true, "scaleFactor": 0.7}}, "smooth": {"type": "curvedCW", "roundness": 0.15}}}')
+        net.set_options('{"physics": {"enabled": false}, "interaction": {"hover": true, "dragNodes": false}, "nodes": {"font": {"face": "Arial", "size": 18, "color": "#F4F4F4", "strokeWidth": 3, "strokeColor": "#161616"}, "margin": 10}, "edges": {"font": {"face": "Arial", "size": 14, "color": "#FFFFFF", "strokeWidth": 3, "strokeColor": "#161616"}, "arrows": {"to": {"enabled": true, "scaleFactor": 0.7}}, "smooth": {"type": "curvedCW", "roundness": 0.15}}}')
 
         html_path = Path(__file__).resolve().parent / "enclave_graph.html"
         net.save_graph(str(html_path))
