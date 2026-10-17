@@ -17,8 +17,7 @@ cryptography>=41.0.0
 onnx>=1.14.0
 onnxruntime>=1.16.0
 
-# Interactive Dashboard & Visualizations
-streamlit>=1.30.0
+# Interactive Visualizations
 pyvis>=0.3.2
 
 # Testing & Profiling

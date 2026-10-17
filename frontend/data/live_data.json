@@ -1,0 +1,86 @@
+{
+  "scenario": "attack",
+  "metrics": {
+    "prAuc": "0.89",
+    "recallAtFpr": "85.4% Recall @ 0.1% FPR",
+    "totalScreened": "148,210",
+    "totalVolume": "$36.14M Volume",
+    "interceptedRings": "41 Rings",
+    "interceptedAmount": "$1,985,000 Illicit Funds",
+    "interceptRate": "99.4%",
+    "p99Latency": "23.6 ms",
+    "p50Latency": "16.2 ms"
+  },
+  "bankData": {
+    "bankA": {
+      "volume": "$14.8M",
+      "volumeCount": "49,300 Transactions Today",
+      "stoppedTxs": "15 Txs",
+      "stoppedAmount": "$192,400 Stopped · Pre-Settlement Held",
+      "suspiciousTxs": "44 Txs",
+      "budgetEps": "1.32"
+    },
+    "bankB": {
+      "volume": "$12.1M",
+      "volumeCount": "40,110 Transactions Today",
+      "stoppedTxs": "20 Txs",
+      "stoppedAmount": "$255,000 Stopped · Layering Held",
+      "suspiciousTxs": "60 Txs",
+      "budgetEps": "1.18"
+    },
+    "bankC": {
+      "volume": "$9.2M",
+      "volumeCount": "29,100 Transactions Today",
+      "stoppedTxs": "30 Txs",
+      "stoppedAmount": "$410,200 Stopped · Cash-Out Prevented",
+      "suspiciousTxs": "85 Txs",
+      "budgetEps": "1.45"
+    }
+  },
+  "globalTransactions": [
+    {
+      "time": "16:40:12",
+      "pseudo": "0x8f4b5961a293847291a2bc8394e1d939281746b8",
+      "origin": "BANK_A_SG",
+      "dest": "BANK_B_SG",
+      "amount": "$4,900.00",
+      "score": "0.989",
+      "decision": "PRE-SETTLEMENT FREEZE",
+      "status": "frozen",
+      "latency": "23.6 ms"
+    },
+    {
+      "time": "16:39:55",
+      "pseudo": "0x3a9c44e0982143bc8819a004821039485761bc92",
+      "origin": "BANK_B_SG",
+      "dest": "BANK_C_SG",
+      "amount": "$2,450.00",
+      "score": "0.985",
+      "decision": "PRE-SETTLEMENT FREEZE",
+      "status": "frozen",
+      "latency": "23.1 ms"
+    },
+    {
+      "time": "16:38:20",
+      "pseudo": "0x7e1db805912834019a28bc839481729384710129",
+      "origin": "BANK_C_SG",
+      "dest": "CASH_OUT",
+      "amount": "$4,900.00",
+      "score": "0.991",
+      "decision": "PRE-SETTLEMENT FREEZE",
+      "status": "frozen",
+      "latency": "24.0 ms"
+    },
+    {
+      "time": "16:35:10",
+      "pseudo": "0x3e11cc0491827364516273849501928374655647",
+      "origin": "BANK_A_SG",
+      "dest": "BANK_C_SG",
+      "amount": "$3,450.00",
+      "score": "0.065",
+      "decision": "SETTLEMENT APPROVED",
+      "status": "approved",
+      "latency": "17.9 ms"
+    }
+  ]
+}
