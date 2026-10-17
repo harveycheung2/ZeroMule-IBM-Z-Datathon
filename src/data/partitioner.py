@@ -1,73 +1,68 @@
 """
-Multi-Bank Silo Partitioner for ZeroMule-IBM-Z-Datathon.
+Multi-Bank Ledger Partitioner (Federated Data Simulation).
 
-Simulates strict regulatory compliance silos across competing financial institutions:
-- Each bank maintains a private ledger invisible to other institutions.
-- Cross-bank transactions define boundary nodes where accounts interact across borders.
+Simulates real-world banking privacy silos:
+1. Partitions the unified transaction ledger into 3 private, disjoint bank ledgers
+   (Bank A, Bank B, Bank C).
+2. Isolates intra-bank records so each bank only observes transactions where it is
+   the originating or receiving institution.
+3. Extracts and indexes cross-bank boundary transactions for central enclave evaluation.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Set, Tuple
 import pandas as pd
-from src.data.schemas import BankSiloPartition
+from pathlib import Path
+from typing import Dict, Tuple
+from src.data.dataset_loader import load_all_datasets, PROCESSED_DATA_DIR
 
 
-class BasePartitioner(ABC):
+def partition_ledgers(
+    df_trans: pd.DataFrame = None, output_dir: Path = PROCESSED_DATA_DIR
+) -> Dict[str, pd.DataFrame]:
     """
-    Abstract partitioner interface for multi-institution financial simulation.
+    Partitions transactions into Bank A, Bank B, Bank C local ledgers,
+    plus an isolated cross-bank boundary transaction set.
     """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if df_trans is None:
+        datasets = load_all_datasets()
+        df_trans = datasets["hi_trans"]
 
-    @abstractmethod
-    def partition_ledger(self, df: pd.DataFrame) -> Dict[str, BankSiloPartition]:
-        """Partitions global transactions into individual bank silos."""
-        raise NotImplementedError("Subclasses must implement partition_ledger.")
+    banks = ["Bank_A", "Bank_B", "Bank_C"]
+    bank_ledgers = {}
+
+    print(f"\n[Partitioner] Partitioning {len(df_trans):,} global transactions across 3 bank silos...")
+
+    # For each bank, it has visibility into transactions where it is the originating bank
+    # (or participant in internal transfers).
+    for b in banks:
+        # A bank sees outgoing transactions originating from its accounts,
+        # plus incoming inter-bank deposits once settled.
+        bank_visibility_mask = (df_trans["From Bank"] == b) | (df_trans["To Bank"] == b)
+        ledger = df_trans[bank_visibility_mask].copy()
+
+        # Save private bank ledger
+        out_csv = output_dir / f"{b.lower()}_ledger.csv"
+        ledger.to_csv(out_csv, index=False)
+        bank_ledgers[b] = ledger
+        laundering_count = (ledger["Is Laundering"] == 1).sum()
+        print(f"  [OK] {b} Ledger: {len(ledger):,} transactions ({laundering_count} tagged as laundering).")
+
+    # Cross-bank boundary transactions: From Bank != To Bank
+    cross_bank_mask = df_trans["From Bank"] != df_trans["To Bank"]
+    df_boundary = df_trans[cross_bank_mask].copy()
+    boundary_csv = output_dir / "cross_bank_boundary.csv"
+    df_boundary.to_csv(boundary_csv, index=False)
+
+    cross_laundering = (df_boundary["Is Laundering"] == 1).sum()
+    print(f"  [OK] Cross-Bank Boundary Table: {len(df_boundary):,} transactions ({cross_laundering} cross-bank laundering hops).")
+
+    return {
+        "Bank_A": bank_ledgers["Bank_A"],
+        "Bank_B": bank_ledgers["Bank_B"],
+        "Bank_C": bank_ledgers["Bank_C"],
+        "Boundary": df_boundary,
+    }
 
 
-class BankSiloPartitioner(BasePartitioner):
-    """
-    Splits global transaction records into independent bank silos and identifies boundary counterparties.
-    """
-
-    def __init__(self, silo_bank_names: List[str] = None):
-        self.silo_bank_names = silo_bank_names or ["Bank_A", "Bank_B", "Bank_C"]
-
-    def identify_boundary_accounts(self, df: pd.DataFrame) -> Dict[str, Set[str]]:
-        """
-        Identifies accounts involved in inter-bank transfers (cross-border boundary nodes).
-        """
-        boundary_accounts: Dict[str, Set[str]] = {b: set() for b in self.silo_bank_names}
-        cross_bank_mask = df["From Bank"] != df["To Bank"]
-        cross_df = df[cross_bank_mask]
-
-        for bank in self.silo_bank_names:
-            outbound = set(cross_df[cross_df["From Bank"] == bank]["Account"])
-            inbound = set(cross_df[cross_df["To Bank"] == bank]["Account.1"])
-            boundary_accounts[bank] = outbound.union(inbound)
-
-        return boundary_accounts
-
-    def partition_ledger(self, df: pd.DataFrame) -> Dict[str, BankSiloPartition]:
-        """
-        Filters transactions visible to each bank silo:
-        A bank sees transactions where it is either the sending bank or the receiving bank.
-        Internal accounts and balances of other banks remain hidden.
-        """
-        partitions = {}
-        boundary_map = self.identify_boundary_accounts(df)
-
-        for bank_name in self.silo_bank_names:
-            visible_mask = (df["From Bank"] == bank_name) | (df["To Bank"] == bank_name)
-            local_tx = df[visible_mask].copy()
-
-            internal_accs = set(local_tx[local_tx["From Bank"] == bank_name]["Account"]).union(
-                set(local_tx[local_tx["To Bank"] == bank_name]["Account.1"])
-            )
-
-            partitions[bank_name] = BankSiloPartition(
-                bank_id=bank_name,
-                internal_accounts=internal_accs,
-                boundary_accounts=boundary_map.get(bank_name, set()),
-                local_transactions=local_tx
-            )
-
-        return partitions
+if __name__ == "__main__":
+    partition_ledgers()
