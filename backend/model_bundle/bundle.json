@@ -1,0 +1,21 @@
+{
+  "bundle_version": "ibm-history-precomputed-v4a-1",
+  "model_version": "ibm-history-v4a-781d795e012adea0",
+  "threshold": 0.08102506091151732,
+  "experiment": "C_combined",
+  "evaluation_status": "exploratory validation only",
+  "precomputed_history_only": true,
+  "stateful_inference_verified": false,
+  "dataset_sha256": "b19d39f515523373f991b689c07e11e7b0b95c17a2c27a87d91584ae16c5b040",
+  "historical_database_sha256": "7dd9cf470229b1610c5ed273555158ea598ce084695676aa4903ee5c1586ad0a",
+  "files_sha256": {
+    "booster.txt": "99ac68cb71754b4ac1567442c8e38f306a7ce824e938b21b3d88ee78b1e801a1",
+    "model.json": "3aeea08547496e05253752fe5d1efc760a587666fddd23054eee4c0312559ed6",
+    "preprocessing.json": "12b9d586a6c5e4b870450b199407a2557a8a0d74a36d39a2652bbae0f68778d2",
+    "historical_feature_schema.json": "b9270eac6110481a6f7e8d84f56636e4f0a77ad057d6552e664b7b882ecb6d21",
+    "bank_mapping.json": "cbcba1e42c19e6c2468543dd288edb84844960af330ff103e6d0d99df8c407cf",
+    "ordered_feature_schema.json": "6c362757bc6f56a266ef86f8239978b13d03a2e981d45c6ce17d86da5a136aad",
+    "inference.py": "022504fb486ce576b461e441a1ab6d14589dfb019845eaceb8fdef59362c0ba8"
+  },
+  "packaging": "runtime-only subset; original model/preprocessing/schema/mapping/scorer byte-identical; development metadata and real-data examples omitted"
+}

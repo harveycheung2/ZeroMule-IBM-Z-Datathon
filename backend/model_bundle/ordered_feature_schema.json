@@ -1,0 +1,24 @@
+{
+  "ordered_features": [
+    "amount_paid",
+    "amount_received",
+    "log_amount_paid",
+    "log_amount_received",
+    "hour",
+    "weekday",
+    "day_of_month",
+    "payment_currency",
+    "receiving_currency",
+    "payment_format",
+    "sender_out_count_24h",
+    "sender_out_amount_24h_same_currency",
+    "receiver_in_count_24h",
+    "receiver_in_amount_24h_same_currency",
+    "sender_seconds_since_previous_outgoing",
+    "pair_prior_count",
+    "is_new_counterparty",
+    "sender_amount_over_prior_mean_same_currency"
+  ],
+  "dtype": "float64",
+  "historical_schema_version": "ibm-history-eight-v1"
+}

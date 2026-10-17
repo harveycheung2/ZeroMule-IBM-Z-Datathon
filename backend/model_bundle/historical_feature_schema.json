@@ -1,0 +1,109 @@
+{
+  "version": "ibm-history-eight-v1",
+  "state_version": "ibm-history-atomic-output-v1",
+  "parent_feature_version": "ibm-history-prototype-v1",
+  "ordered_features": [
+    "sender_out_count_24h",
+    "sender_out_amount_24h_same_currency",
+    "receiver_in_count_24h",
+    "receiver_in_amount_24h_same_currency",
+    "sender_seconds_since_previous_outgoing",
+    "pair_prior_count",
+    "is_new_counterparty",
+    "sender_amount_over_prior_mean_same_currency"
+  ],
+  "observation_start_inclusive": "2022-09-01T00:00:00",
+  "window": "[t-86400,t); strictly earlier timestamps; whole timestamp groups isolated",
+  "identity": "(canonical bank ID, exact case-sensitive account string)",
+  "timezone": "unspecified; naive epoch offsets for arithmetic only",
+  "fields": [
+    {
+      "name": "sender_out_count_24h",
+      "dtype": "int64",
+      "nullable": false,
+      "units": "count",
+      "key": [
+        "sender"
+      ],
+      "cold_start": 0
+    },
+    {
+      "name": "sender_out_amount_24h_same_currency",
+      "dtype": "float64",
+      "nullable": false,
+      "units": "current payment_currency",
+      "key": [
+        "sender",
+        "payment_currency"
+      ],
+      "cold_start": 0
+    },
+    {
+      "name": "receiver_in_count_24h",
+      "dtype": "int64",
+      "nullable": false,
+      "units": "count",
+      "key": [
+        "receiver"
+      ],
+      "cold_start": 0
+    },
+    {
+      "name": "receiver_in_amount_24h_same_currency",
+      "dtype": "float64",
+      "nullable": false,
+      "units": "current receiving_currency",
+      "key": [
+        "receiver",
+        "receiving_currency"
+      ],
+      "cold_start": 0
+    },
+    {
+      "name": "sender_seconds_since_previous_outgoing",
+      "dtype": "int64",
+      "nullable": true,
+      "units": "seconds",
+      "key": [
+        "sender"
+      ],
+      "cold_start": null
+    },
+    {
+      "name": "pair_prior_count",
+      "dtype": "int64",
+      "nullable": false,
+      "units": "count",
+      "key": [
+        "directed sender",
+        "receiver"
+      ],
+      "cold_start": 0
+    },
+    {
+      "name": "is_new_counterparty",
+      "dtype": "int64",
+      "nullable": false,
+      "units": "binary",
+      "key": [
+        "directed sender",
+        "receiver"
+      ],
+      "cold_start": 1
+    },
+    {
+      "name": "sender_amount_over_prior_mean_same_currency",
+      "dtype": "float64",
+      "nullable": true,
+      "units": "dimensionless",
+      "key": [
+        "sender",
+        "payment_currency"
+      ],
+      "cold_start": null
+    }
+  ],
+  "ordering_note": "Preserves Phase 3A order exactly: outgoing count, outgoing amount, incoming count, incoming amount, outgoing recency, pair count, new flag, ratio.",
+  "model_missing_values": "SQL NULL -> NumPy NaN for the two nullable features; never fill these with zero implicitly.",
+  "no_new_features": true
+}
