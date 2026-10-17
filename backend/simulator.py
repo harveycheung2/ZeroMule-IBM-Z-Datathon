@@ -23,15 +23,15 @@ def _tx(from_bank, sender, to_bank, receiver, amount, fmt="Wire", currency="US D
     }
 
 
-# 4-hop mule ring: A → B → (B split×2) → C → cash-out
-# $2,450 ACH on day 3-4 of month scores 0.9999 per model's learned IBM AML pattern
-_ATTACK_TEMPLATES = [
-    _tx("bankA", "ACC-884920", "bankB", "ACC-319044", 4900.00, "Wire"),
-    _tx("bankB", "ACC-319044", "bankB", "ACC-441829", 2450.00, "ACH"),
-    _tx("bankB", "ACC-319044", "bankB", "ACC-881204", 2450.00, "ACH"),
-    _tx("bankB", "ACC-441829", "bankC", "ACC-772810", 2450.00, "ACH"),
-    _tx("bankB", "ACC-881204", "bankC", "ACC-994821", 2450.00, "ACH"),
-    _tx("bankC", "ACC-772810", "bankC", "ACC-EXT-ATM", 4870.00, "Wire"),
+# Attack template uses placeholder keys for accounts — replaced with fresh IDs each ring.
+# Ring topology: A(orig) → B(mule1) → B(mule2) + B(mule3) → C(coll1) + C(coll2) → C(atm)
+_ATTACK_TEMPLATE = [
+    ("bankA", "ORIG",  "bankB", "MULE1", 4900.00, "Wire"),
+    ("bankB", "MULE1", "bankB", "MULE2", 2450.00, "ACH"),
+    ("bankB", "MULE1", "bankB", "MULE3", 2450.00, "ACH"),
+    ("bankB", "MULE2", "bankC", "COLL1", 2450.00, "ACH"),
+    ("bankB", "MULE3", "bankC", "COLL2", 2450.00, "ACH"),
+    ("bankC", "COLL1", "bankC", "ATM",   4870.00, "Wire"),
 ]
 
 # Legitimate corporate payroll batch
@@ -48,16 +48,24 @@ _PAYROLL_TEMPLATES = [
     _tx("bankC", "ACC-CORP-003", "bankC", "ACC-EMP-304", 2200.00, "ACH"),
 ]
 
+RING_SIZE = len(_ATTACK_TEMPLATE)
+
+
+def _fresh_ring_accounts() -> dict:
+    """Generate a new set of random account IDs for one ring so every ring is a new counterparty."""
+    return {role: f"ACC-{uuid.uuid4().hex[:6].upper()}" for role in ("ORIG", "MULE1", "MULE2", "MULE3", "COLL1", "COLL2", "ATM")}
+
 
 class Simulator:
     def __init__(self):
         self._scenario = "attack"
-        self._attack_cycle: Iterator = itertools.cycle(_ATTACK_TEMPLATES)
         self._payroll_cycle: Iterator = itertools.cycle(_PAYROLL_TEMPLATES)
         # attack uses day=3 (ACH $2450 scores 0.9999); payroll uses day=1 (scores ~0.02)
         self._attack_base = datetime(2026, 11, 3, 14, 0, 0)
         self._payroll_base = datetime(2026, 11, 1, 9, 0, 0)
         self._offset_seconds = 0
+        self._ring_step = 0
+        self._ring_accounts = _fresh_ring_accounts()
 
     def set_scenario(self, scenario: str):
         if scenario not in ("attack", "payroll"):
@@ -72,12 +80,17 @@ class Simulator:
         self._offset_seconds += 18
         base = self._attack_base if self._scenario == "attack" else self._payroll_base
         ts = base + timedelta(seconds=self._offset_seconds)
-        template = (
-            next(self._attack_cycle)
-            if self._scenario == "attack"
-            else next(self._payroll_cycle)
-        )
-        tx = dict(template)
+
+        if self._scenario == "attack":
+            if self._ring_step == 0:
+                self._ring_accounts = _fresh_ring_accounts()
+            step = _ATTACK_TEMPLATE[self._ring_step]
+            self._ring_step = (self._ring_step + 1) % RING_SIZE
+            accs = self._ring_accounts
+            tx = _tx(step[0], accs[step[1]], step[2], accs[step[3]], step[4], step[5])
+        else:
+            tx = dict(next(self._payroll_cycle))
+
         tx["transaction_id"] = f"TX-{uuid.uuid4().hex[:8].upper()}"
         tx["timestamp"] = ts.strftime("%Y-%m-%dT%H:%M:%S")
         return tx
