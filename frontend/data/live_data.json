@@ -1,86 +1,212 @@
 {
-  "scenario": "attack",
+  "scenario": "payroll",
   "metrics": {
     "prAuc": "0.89",
-    "recallAtFpr": "85.4% Recall @ 0.1% FPR",
-    "totalScreened": "148,210",
-    "totalVolume": "$36.14M Volume",
-    "interceptedRings": "41 Rings",
-    "interceptedAmount": "$1,985,000 Illicit Funds",
-    "interceptRate": "99.4%",
-    "p99Latency": "23.6 ms",
-    "p50Latency": "16.2 ms"
+    "recallAtFpr": "84.2% Recall @ 0.1% FPR",
+    "totalScreened": "10",
+    "totalVolume": "$82,320.00",
+    "interceptedRings": "4 Rings",
+    "interceptedAmount": "$9,800.00 Illicit Funds",
+    "interceptRate": "40.0%",
+    "p99Latency": "1.8 ms",
+    "p50Latency": "1.4 ms"
   },
   "bankData": {
     "bankA": {
-      "volume": "$14.8M",
-      "volumeCount": "49,300 Transactions Today",
-      "stoppedTxs": "15 Txs",
-      "stoppedAmount": "$192,400 Stopped · Pre-Settlement Held",
-      "suspiciousTxs": "44 Txs",
-      "budgetEps": "1.32"
+      "volume": "$13,000.00",
+      "volumeCount": "3 Transactions",
+      "stoppedTxs": "0 Txs",
+      "stoppedAmount": "$0.00 Stopped \u00b7 Coordinator Held",
+      "suspiciousTxs": "0 Txs",
+      "budgetEps": "1.35",
+      "transactions": [
+        {
+          "id": "TX-8390FF2B",
+          "time": "47s ago",
+          "acc": "ACC-CORP-001",
+          "pseudo": "0x55cc..1eac",
+          "counterparty": "BANK_A_SG",
+          "amount": "$3,200.00",
+          "localView": "Cleared (0.00)",
+          "action": "SETTLEMENT APPROVED",
+          "status": "approved",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-F9C2BAA4",
+          "time": "47s ago",
+          "acc": "ACC-884920",
+          "pseudo": "0xabd8..3459",
+          "counterparty": "BANK_B_SG",
+          "amount": "$4,900.00",
+          "localView": "Cleared (0.00)",
+          "action": "SETTLEMENT APPROVED",
+          "status": "approved",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-299066D6",
+          "time": "47s ago",
+          "acc": "ACC-884920",
+          "pseudo": "0xabd8..3459",
+          "counterparty": "BANK_B_SG",
+          "amount": "$4,900.00",
+          "localView": "Cleared (0.00)",
+          "action": "SETTLEMENT APPROVED",
+          "status": "approved",
+          "prov": "Ed25519 Valid"
+        }
+      ]
     },
     "bankB": {
-      "volume": "$12.1M",
-      "volumeCount": "40,110 Transactions Today",
-      "stoppedTxs": "20 Txs",
-      "stoppedAmount": "$255,000 Stopped · Layering Held",
-      "suspiciousTxs": "60 Txs",
-      "budgetEps": "1.18"
+      "volume": "$14,700.00",
+      "volumeCount": "6 Transactions",
+      "stoppedTxs": "4 Txs",
+      "stoppedAmount": "$9,800.00 Stopped \u00b7 Coordinator Held",
+      "suspiciousTxs": "0 Txs",
+      "budgetEps": "1.20",
+      "transactions": [
+        {
+          "id": "TX-8E876924",
+          "time": "47s ago",
+          "acc": "ACC-319044",
+          "pseudo": "0x6e3a..b923",
+          "counterparty": "BANK_B_SG",
+          "amount": "$2,450.00",
+          "localView": "Cleared (0.01)",
+          "action": "SETTLEMENT APPROVED",
+          "status": "approved",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-EF7AA06C",
+          "time": "47s ago",
+          "acc": "ACC-319044",
+          "pseudo": "0x6e3a..b923",
+          "counterparty": "BANK_B_SG",
+          "amount": "$2,450.00",
+          "localView": "Cleared (0.01)",
+          "action": "SETTLEMENT APPROVED",
+          "status": "approved",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-69C5359A",
+          "time": "47s ago",
+          "acc": "ACC-881204",
+          "pseudo": "0xc346..a377",
+          "counterparty": "BANK_C_SG",
+          "amount": "$2,450.00",
+          "localView": "Cleared (1.00)",
+          "action": "PRE-SETTLEMENT FREEZE",
+          "status": "frozen",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-7B3FA6E4",
+          "time": "47s ago",
+          "acc": "ACC-441829",
+          "pseudo": "0x9448..0d18",
+          "counterparty": "BANK_C_SG",
+          "amount": "$2,450.00",
+          "localView": "Cleared (1.00)",
+          "action": "PRE-SETTLEMENT FREEZE",
+          "status": "frozen",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-59608AC5",
+          "time": "47s ago",
+          "acc": "ACC-319044",
+          "pseudo": "0x6e3a..b923",
+          "counterparty": "BANK_B_SG",
+          "amount": "$2,450.00",
+          "localView": "Cleared (1.00)",
+          "action": "PRE-SETTLEMENT FREEZE",
+          "status": "frozen",
+          "prov": "Ed25519 Valid"
+        },
+        {
+          "id": "TX-96EDFBFC",
+          "time": "47s ago",
+          "acc": "ACC-319044",
+          "pseudo": "0x6e3a..b923",
+          "counterparty": "BANK_B_SG",
+          "amount": "$2,450.00",
+          "localView": "Cleared (1.00)",
+          "action": "PRE-SETTLEMENT FREEZE",
+          "status": "frozen",
+          "prov": "Ed25519 Valid"
+        }
+      ]
     },
     "bankC": {
-      "volume": "$9.2M",
-      "volumeCount": "29,100 Transactions Today",
-      "stoppedTxs": "30 Txs",
-      "stoppedAmount": "$410,200 Stopped · Cash-Out Prevented",
-      "suspiciousTxs": "85 Txs",
-      "budgetEps": "1.45"
+      "volume": "$4,870.00",
+      "volumeCount": "1 Transactions",
+      "stoppedTxs": "0 Txs",
+      "stoppedAmount": "$0.00 Stopped \u00b7 Coordinator Held",
+      "suspiciousTxs": "0 Txs",
+      "budgetEps": "1.50",
+      "transactions": [
+        {
+          "id": "TX-551D30DB",
+          "time": "47s ago",
+          "acc": "ACC-772810",
+          "pseudo": "0xbb2b..4325",
+          "counterparty": "BANK_C_SG",
+          "amount": "$4,870.00",
+          "localView": "Cleared (0.00)",
+          "action": "SETTLEMENT APPROVED",
+          "status": "approved",
+          "prov": "Ed25519 Valid"
+        }
+      ]
     }
   },
   "globalTransactions": [
     {
-      "time": "16:40:12",
-      "pseudo": "0x8f4b5961a293847291a2bc8394e1d939281746b8",
+      "time": "14:02:06",
+      "pseudo": "abd83fdb3184bec8bbb45f846a4fe0cc6866c9f9c5db142b329ad8f023593459",
       "origin": "BANK_A_SG",
       "dest": "BANK_B_SG",
       "amount": "$4,900.00",
-      "score": "0.989",
-      "decision": "PRE-SETTLEMENT FREEZE",
-      "status": "frozen",
-      "latency": "23.6 ms"
+      "score": "0.0001",
+      "decision": "SETTLEMENT APPROVED",
+      "status": "approved",
+      "latency": "1.4 ms"
     },
     {
-      "time": "16:39:55",
-      "pseudo": "0x3a9c44e0982143bc8819a004821039485761bc92",
+      "time": "14:01:30",
+      "pseudo": "c3469e223b2a02cb513ffc7c6377378162bba6d72dacecef3a3fdef18b5ba377",
       "origin": "BANK_B_SG",
       "dest": "BANK_C_SG",
       "amount": "$2,450.00",
-      "score": "0.985",
+      "score": "0.9999",
       "decision": "PRE-SETTLEMENT FREEZE",
       "status": "frozen",
-      "latency": "23.1 ms"
+      "latency": "1.2 ms"
     },
     {
-      "time": "16:38:20",
-      "pseudo": "0x7e1db805912834019a28bc839481729384710129",
-      "origin": "BANK_C_SG",
-      "dest": "CASH_OUT",
-      "amount": "$4,900.00",
-      "score": "0.991",
-      "decision": "PRE-SETTLEMENT FREEZE",
-      "status": "frozen",
-      "latency": "24.0 ms"
-    },
-    {
-      "time": "16:35:10",
-      "pseudo": "0x3e11cc0491827364516273849501928374655647",
-      "origin": "BANK_A_SG",
+      "time": "14:01:12",
+      "pseudo": "94481fcda3be0fae8d4a069171678e2d3716006df3f0cff9adae0f6da41e0d18",
+      "origin": "BANK_B_SG",
       "dest": "BANK_C_SG",
-      "amount": "$3,450.00",
-      "score": "0.065",
+      "amount": "$2,450.00",
+      "score": "0.9999",
+      "decision": "PRE-SETTLEMENT FREEZE",
+      "status": "frozen",
+      "latency": "1.4 ms"
+    },
+    {
+      "time": "14:00:18",
+      "pseudo": "abd83fdb3184bec8bbb45f846a4fe0cc6866c9f9c5db142b329ad8f023593459",
+      "origin": "BANK_A_SG",
+      "dest": "BANK_B_SG",
+      "amount": "$4,900.00",
+      "score": "0.0",
       "decision": "SETTLEMENT APPROVED",
       "status": "approved",
-      "latency": "17.9 ms"
+      "latency": "1.8 ms"
     }
   ]
 }

@@ -1,0 +1,66 @@
+{
+  "version": "ibm-tabular-v1",
+  "features": [
+    "amount_paid",
+    "amount_received",
+    "log_amount_paid",
+    "log_amount_received",
+    "hour",
+    "weekday",
+    "day_of_month",
+    "payment_currency",
+    "receiving_currency",
+    "payment_format"
+  ],
+  "categories": {
+    "payment_currency": [
+      "Australian Dollar",
+      "Bitcoin",
+      "Brazil Real",
+      "Canadian Dollar",
+      "Euro",
+      "Mexican Peso",
+      "Ruble",
+      "Rupee",
+      "Saudi Riyal",
+      "Shekel",
+      "Swiss Franc",
+      "UK Pound",
+      "US Dollar",
+      "Yen",
+      "Yuan"
+    ],
+    "receiving_currency": [
+      "Australian Dollar",
+      "Bitcoin",
+      "Brazil Real",
+      "Canadian Dollar",
+      "Euro",
+      "Mexican Peso",
+      "Ruble",
+      "Rupee",
+      "Saudi Riyal",
+      "Shekel",
+      "Swiss Franc",
+      "UK Pound",
+      "US Dollar",
+      "Yen",
+      "Yuan"
+    ],
+    "payment_format": [
+      "ACH",
+      "Bitcoin",
+      "Cash",
+      "Cheque",
+      "Credit Card",
+      "Reinvestment",
+      "Wire"
+    ]
+  },
+  "unknown_category_code": -1,
+  "timestamp_timezone": "unspecified",
+  "identifier_features": [],
+  "pattern_features": [],
+  "history_features": [],
+  "category_fit_split": "train"
+}
