@@ -41,29 +41,25 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# Data files (prevent committing datasets)
+# Data & Model weights (prevent accidental commits of large datasets / models)
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
-
-# Weights & Pretrained Models
-weights/*
-!weights/.gitkeep
 models/*.pkl
 models/*.joblib
 models/*.onnx
 models/*.pt
 models/*.h5
-
-# Results & Plots (prevent committing generated result binaries)
-results/*.csv
-results/*.json
-results/plots/*
-!results/.gitkeep
-!results/plots/.gitkeep
+!models/.gitkeep
 
 # Environment secrets
 .env
 .env.local
 *.secret
+
+# Bank-only privacy state and keys
+*.sqlite
+*.sqlite-*
+*.pem
+*_node_embs.pkl

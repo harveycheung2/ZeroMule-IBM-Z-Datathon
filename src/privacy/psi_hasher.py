@@ -1,93 +1,67 @@
-"""
-Private Set Intersection (PSI) using Salted HMAC-SHA256.
+"""Bank-side keyed pseudonyms and equality matching; not cryptographic PSI."""
 
-Allows multiple banking entities (e.g., Bank A, Bank B, Bank C) to cooperatively
-identify cross-bank boundary accounts without revealing internal customer IDs,
-balances, or PII to other participants or the coordinator.
-"""
-
-import hmac
+import base64
 import hashlib
+import hmac
+import os
+import re
 from typing import Dict, List, Set, Tuple
 
 
-class PSIHasher:
-    """
-    Cryptographic PSI Hasher leveraging HMAC-SHA256 with an ephemeral or shared salt.
-    """
+def validate_token(value):
+    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+        raise ValueError("Expected an HMAC-SHA256 pseudonym")
 
-    def __init__(self, salt: bytes = b"zeromule_datathon_secret_salt_2026"):
-        """
-        Initialize hasher with a cryptographic salt agreed upon via secure key exchange.
-        """
-        self.salt = salt
+
+class PSIHasher:
+    """Legacy class name for deterministic HMAC matching. Keys stay at banks."""
+
+    def __init__(self, key: bytes = None):
+        if key is None:
+            encoded = os.environ.get("ZEROMULE_HMAC_KEY_B64")
+            if not encoded:
+                raise ValueError("ZEROMULE_HMAC_KEY_B64 is required")
+            try:
+                key = base64.b64decode(encoded, validate=True)
+            except (ValueError, TypeError) as exc:
+                raise ValueError("Invalid base64 HMAC key") from exc
+        if not isinstance(key, bytes) or len(key) < 32:
+            raise ValueError("HMAC key must contain at least 32 random bytes")
+        self._key = key
 
     def hash_account(self, account_id: str) -> str:
-        """
-        Compute HMAC-SHA256 hash of an account ID.
-        """
-        h = hmac.new(self.salt, account_id.encode("utf-8"), hashlib.sha256)
-        return h.hexdigest()
+        if not isinstance(account_id, str) or not account_id:
+            raise ValueError("Account IDs must be nonempty strings")
+        return hmac.new(self._key, b"zeromule/account/v1\x00" + account_id.encode(), hashlib.sha256).hexdigest()
 
     def hash_accounts(self, account_ids: List[str]) -> List[str]:
-        """
-        Hash a list of account IDs.
-        """
         return [self.hash_account(acc) for acc in account_ids]
 
-    def create_blinded_ledger_records(
-        self, records: List[Dict[str, any]], bank_id: str
-    ) -> List[Dict[str, any]]:
-        """
-        Blinds account identifiers before transmission to the central enclave coordinator.
-        Raw account IDs are replaced by salted hashes.
-        """
-        blinded = []
-        for r in records:
-            item = dict(r)
-            item["orig_account_hash"] = self.hash_account(str(r["source_account"]))
-            item["dest_account_hash"] = self.hash_account(str(r["target_account"]))
-            item["originating_bank"] = bank_id
-            # Redact raw accounts
-            item.pop("source_account", None)
-            item.pop("target_account", None)
-            blinded.append(item)
-        return blinded
+    def create_blinded_ledger_records(self, records: List[dict], bank_id: str) -> List[dict]:
+        """Allowlist only endpoints; amounts, timestamps, labels and extra PII never leave."""
+        if not isinstance(bank_id, str) or not bank_id:
+            raise ValueError("A bank ID is required")
+        return [{"orig_account_hash": self.hash_account(r["source_account"]),
+                 "dest_account_hash": self.hash_account(r["target_account"]),
+                 "originating_bank": bank_id} for r in records]
 
 
 class CentralPSICoordinator:
-    """
-    Central Enclave Coordinator matching blinded hashes across banks.
-    """
+    """Legacy name for pseudonym intersection, revealing equality and membership."""
 
     def __init__(self):
         self.bank_hash_sets: Dict[str, Set[str]] = {}
 
     def register_bank_hashes(self, bank_id: str, account_hashes: Set[str]):
-        """
-        Register blinded hashes sent by a participant bank.
-        """
-        self.bank_hash_sets[bank_id] = set(account_hashes)
+        tokens = set(account_hashes)
+        for token in tokens:
+            validate_token(token)
+        self.bank_hash_sets[bank_id] = tokens
 
     def find_cross_bank_intersections(self) -> Dict[Tuple[str, str], Set[str]]:
-        """
-        Compute pairwise intersections between banks to find bridge/boundary nodes.
-        """
-        intersections = {}
-        banks = list(self.bank_hash_sets.keys())
-        for i in range(len(banks)):
-            for j in range(i + 1, len(banks)):
-                b1, b2 = banks[i], banks[j]
-                shared = self.bank_hash_sets[b1].intersection(self.bank_hash_sets[b2])
-                intersections[(b1, b2)] = shared
-        return intersections
+        banks = list(self.bank_hash_sets)
+        return {(b1, b2): self.bank_hash_sets[b1] & self.bank_hash_sets[b2]
+                for i, b1 in enumerate(banks) for b2 in banks[i + 1:]}
 
     def get_all_boundary_hashes(self) -> Set[str]:
-        """
-        Returns all unique account hashes that appear in cross-bank boundary activities.
-        """
-        boundary = set()
-        intersections = self.find_cross_bank_intersections()
-        for common in intersections.values():
-            boundary.update(common)
-        return boundary
+        return set().union(*self.find_cross_bank_intersections().values())
