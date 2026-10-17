@@ -953,7 +953,11 @@ async function fetchBackendTelemetry() {
       Object.assign(state.metrics, data.metrics);
     }
     if (data.bankData) {
-      Object.assign(BANK_DATA, data.bankData);
+      for (const [bankKey, bankPayload] of Object.entries(data.bankData)) {
+        if (BANK_DATA[bankKey]) {
+          Object.assign(BANK_DATA[bankKey], bankPayload);
+        }
+      }
     }
     if (Array.isArray(data.globalTransactions) && data.globalTransactions.length > 0) {
       GLOBAL_TRANSACTIONS.length = 0;
