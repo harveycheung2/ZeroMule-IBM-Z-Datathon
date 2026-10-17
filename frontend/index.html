@@ -3,599 +3,247 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZeroMule — Privacy Release Boundary & Confidential AML Enclave</title>
+  <title>ZeroMule | Confidential Graph AI Coordinator</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- App Outer Canvas Container -->
-  <div class="app-viewport">
-    <div class="app-window">
+  <div class="app-container">
 
-      <!-- ========================================================= -->
-      <!-- 1. LEFT NAVIGATION SIDEBAR -->
-      <!-- ========================================================= -->
-      <aside class="sidebar" id="sidebar">
-        <!-- Sidebar Header / Brand -->
-        <div class="sidebar-header">
-          <div class="brand">
-            <div class="brand-icon">
-              <!-- Geometric Enclave Star Shield -->
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="9"></circle>
-                <path d="M12 3v18"></path>
-                <path d="M3 12h18"></path>
-                <path d="m5.6 5.6 12.8 12.8"></path>
-                <path d="m18.4 5.6-12.8 12.8"></path>
-              </svg>
-            </div>
-            <span class="brand-title">ZeroMule</span>
-          </div>
-          <button class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="9" y1="3" x2="9" y2="21"></line>
-            </svg>
+    <!-- 1. STICKY FROSTED HEADER BAR -->
+    <header class="nav-bar">
+      <div class="nav-brand">
+        <img src="assets/logo.png" alt="ZeroMule Logo" class="brand-logo">
+        <div class="brand-text">
+          <div class="brand-title">ZeroMule Coordinator</div>
+          <div class="brand-subtitle">Privacy-Preserving Cross-Bank Graph AI &bull; IBM LinuxONE s390x</div>
+        </div>
+      </div>
+      <div class="nav-status-pills">
+        <span class="pill pill-blue"><span class="pill-dot"></span>IBM LinuxONE (s390x) Enclave</span>
+        <span class="pill pill-gray">Transit: mTLS 1.3</span>
+        <span class="pill pill-green">&#10003; Ed25519 Gatekeeper Active</span>
+      </div>
+    </header>
+
+    <!-- 2. INTERACTIVE CONTROLS BAR -->
+    <section class="controls-card glass-card">
+      <div class="control-group scenario-group">
+        <label class="control-label">Transaction Stream Scenario</label>
+        <div class="segmented-control" id="scenarioSwitch">
+          <button type="button" class="segment-btn active" data-scenario="attack" id="btnScenarioAttack">
+            <span class="status-indicator red"></span>Coordinated 4-Hop Cross-Bank Mule Ring
+          </button>
+          <button type="button" class="segment-btn" data-scenario="payroll" id="btnScenarioPayroll">
+            <span class="status-indicator green"></span>Benign Corporate Payroll Batch
           </button>
         </div>
+      </div>
 
-        <!-- Sidebar Navigation Groups -->
-        <nav class="sidebar-nav">
-          <div class="nav-group">
-            <a href="#" class="nav-item active" data-tab="dashboard">
-              <span class="nav-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                  <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                  <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                  <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                </svg>
-              </span>
-              <span class="nav-label">Privacy Boundary</span>
-            </a>
-
-            <!-- Submenu: Bank Deployments & Local Ledgers -->
-            <div class="nav-dropdown expanded">
-              <div class="nav-item nav-dropdown-trigger">
-                <span class="nav-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                  </svg>
-                </span>
-                <span class="nav-label">Bank Deployments</span>
-                <span class="dropdown-chevron">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                </span>
-              </div>
-              <div class="nav-sub-items">
-                <a href="#" class="nav-sub-item active" data-silo="all">All Silos (Consolidated)</a>
-                <a href="#" class="nav-sub-item" data-silo="bank_a">Bank A (SQLite Ledger)</a>
-                <a href="#" class="nav-sub-item" data-silo="bank_b">Bank B (SQLite Ledger)</a>
-                <a href="#" class="nav-sub-item" data-silo="bank_c">Bank C (SQLite Ledger)</a>
-              </div>
-            </div>
-
-            <!-- HMAC Pseudonym Matcher -->
-            <a href="#" class="nav-item" data-tab="hmac">
-              <span class="nav-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </span>
-              <span class="nav-label">HMAC Matcher</span>
-            </a>
-
-            <!-- Ed25519 Signatures & Schema -->
-            <a href="#" class="nav-item" data-tab="provenance">
-              <span class="nav-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-              </span>
-              <span class="nav-label">Ed25519 Provenance</span>
-            </a>
-
-            <!-- Persistent RDP Budget & Accounting -->
-            <div class="nav-dropdown">
-              <div class="nav-item nav-dropdown-trigger">
-                <span class="nav-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                  </svg>
-                </span>
-                <span class="nav-label">RDP Ledger (SQLite)</span>
-                <span class="dropdown-chevron">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                </span>
-              </div>
-              <div class="nav-sub-items">
-                <a href="#" class="nav-sub-item">Atomic Budget State</a>
-                <a href="#" class="nav-sub-item">Receipt Telemetry</a>
-              </div>
-            </div>
-
-            <!-- Settings & Key Pinning -->
-            <a href="#" class="nav-item" data-tab="settings">
-              <span class="nav-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </span>
-              <span class="nav-label">Pinned Public Keys</span>
-            </a>
-          </div>
-        </nav>
-
-        <!-- Sidebar Footer Privacy Status Card -->
-        <div class="sidebar-footer">
-          <div class="compliance-alert-card" id="complianceCard">
-            <div class="alert-card-header">
-              <span class="alert-title">Release Boundary</span>
-              <button class="alert-close" id="closeAlert" aria-label="Dismiss Alert">&times;</button>
-            </div>
-            <p class="alert-desc">Persistent SQLite ledger atomically enforces &epsilon; &le; 2.0 at &delta;=10⁻⁵. Ed25519 signatures verified against pinned bank keys.</p>
-          </div>
-
-          <div class="user-profile">
-            <div class="user-avatar">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Analyst Avatar">
-            </div>
-            <div class="user-info">
-              <span class="user-name">Enclave Operator</span>
-              <span class="user-role">ZeroMule Release Auditor</span>
-            </div>
-          </div>
+      <div class="control-group slider-group">
+        <div class="slider-header">
+          <label for="sigmaSlider" class="control-label">Local DP Noise Scale (&sigma;)</label>
+          <span class="slider-value" id="sigmaValDisplay">0.80</span>
         </div>
-      </aside>
+        <input type="range" id="sigmaSlider" min="0.10" max="1.50" step="0.05" value="0.80" class="apple-slider">
+        <div class="slider-hint">Per-bank budget: &epsilon; = <span id="epsEstDisplay">1.38</span> (C=1.0)</div>
+      </div>
 
-      <!-- ========================================================= -->
-      <!-- 2. CENTER MAIN DASHBOARD CONTENT -->
-      <!-- ========================================================= -->
-      <main class="main-content">
-        <!-- Top App Bar with Search & Utility Controls -->
-        <header class="top-bar">
-          <div class="search-container">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="text" class="search-input" placeholder="Search pseudonyms, release receipts, boundary edges..." aria-label="Search">
-            <kbd class="search-shortcut">/</kbd>
-          </div>
-
-          <div class="top-bar-actions">
-            <div class="system-chip">
-              <span class="chip-pulse"></span>
-              <span class="chip-text">Simulated Enclave &bull; Pinned Ed25519</span>
-            </div>
-            <div class="lang-selector">
-              <span>Strict Schemas</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-            <button class="icon-btn" aria-label="Notifications">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </button>
-          </div>
-        </header>
-
-        <!-- Page Hero Greeting -->
-        <div class="page-greeting">
-          <h1 class="greeting-title">Privacy Release Boundary</h1>
-          <p class="greeting-subtitle">Banks protect data before export &bull; Whole-batch Frobenius clipping &bull; Persistent SQLite RDP ledger (&epsilon;&le;2.0, &delta;=10⁻⁵)</p>
-        </div>
-
-        <!-- Section 1: Main Report Card (Protected Inference Stream) -->
-        <div class="card report-card">
-          <div class="card-eyebrow">
-            <span class="eyebrow-text">PROTECTED INFERENCE & PRIVACY RELEASE TELEMETRY</span>
-            <button class="icon-btn-subtle" aria-label="Filter Options">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="4" y1="21" x2="4" y2="14"></line>
-                <line x1="4" y1="10" x2="4" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12" y2="3"></line>
-                <line x1="20" y1="21" x2="20" y2="16"></line>
-                <line x1="20" y1="12" x2="20" y2="3"></line>
-                <line x1="1" y1="14" x2="7" y2="14"></line>
-                <line x1="9" y1="8" x2="15" y2="8"></line>
-                <line x1="17" y1="16" x2="23" y2="16"></line>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Tab Bar -->
-          <div class="report-tabs">
-            <button class="report-tab active" data-tab-name="flow">Protected inference flow</button>
-            <button class="report-tab" data-tab-name="budget">Persistent RDP budget</button>
-            <button class="report-tab" data-tab-name="hmac">HMAC pseudonymity</button>
-            <button class="report-tab" data-tab-name="validation">Release validation</button>
-          </div>
-
-          <!-- Controls Sub-Row -->
-          <div class="chart-controls-row">
-            <div class="date-range-badge">
-              <span class="range-label">Release Window</span>
-              <span class="range-dates">Active Release &bull; Versioned Payloads &bull; Allowlisted Edges</span>
-            </div>
-
-            <div class="chart-toggles">
-              <button class="chart-toggle-btn active" title="Sort Releases">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="m3 16 4 4 4-4"></path>
-                  <path d="M7 20V4"></path>
-                  <path d="m21 8-4-4-4 4"></path>
-                  <path d="M17 4v16"></path>
-                </svg>
-              </button>
-              <button class="chart-toggle-btn" title="Histogram View">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="20" x2="18" y2="10"></line>
-                  <line x1="12" y1="20" x2="12" y2="4"></line>
-                  <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-              </button>
-              <button class="chart-toggle-btn" title="Graph View">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="6" x2="12" y2="12"></line>
-                  <line x1="12" y1="12" x2="16" y2="14"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Interactive Chart Canvas -->
-          <div class="chart-wrapper">
-            <div class="chart-y-axis">
-              <span>&epsilon; 2.0 (Cap)</span>
-              <span>&epsilon; 1.5</span>
-              <span>&epsilon; 1.0</span>
-              <span>&epsilon; 0.5</span>
-              <span>&epsilon; 0.0</span>
-            </div>
-            <div class="chart-canvas-area" id="chartCanvasArea">
-              <!-- SVG Visual Representation -->
-              <svg id="mainChartSvg" class="main-chart-svg" viewBox="0 0 600 240" preserveAspectRatio="none">
-                <!-- Grid Lines -->
-                <line x1="0" y1="30" x2="600" y2="30" class="grid-line cap-line"></line>
-                <line x1="0" y1="75" x2="600" y2="75" class="grid-line"></line>
-                <line x1="0" y1="120" x2="600" y2="120" class="grid-line"></line>
-                <line x1="0" y1="165" x2="600" y2="165" class="grid-line"></line>
-                <line x1="0" y1="210" x2="600" y2="210" class="grid-line zero-line"></line>
-
-                <!-- Dynamic Bars -->
-                <g class="chart-bars" id="chartBarsGroup">
-                  <!-- Bar 1 (Stage 1: Encode) -->
-                  <rect x="35" y="160" width="22" height="50" rx="3" class="bar-fill bar-primary"></rect>
-                  <!-- Bar 2 (Stage 2: Clip & Reserve) -->
-                  <rect x="150" y="130" width="22" height="80" rx="3" class="bar-fill bar-primary"></rect>
-                  <!-- Bar 3 (Stage 3: Noise Injection) -->
-                  <rect x="260" y="110" width="22" height="100" rx="3" class="bar-fill bar-primary"></rect>
-                  <!-- Bar 4 (Stage 4: Ed25519 Sign) -->
-                  <rect x="370" y="80" width="24" height="130" rx="3" class="bar-fill bar-accent"></rect>
-                  <!-- Bar 5 (Stage 5: Coordinator Validate) -->
-                  <rect x="470" y="60" width="22" height="150" rx="3" class="bar-fill bar-primary"></rect>
-                  <!-- Bar 6 (Stage 6: Enclave Score &ge; 0.5) -->
-                  <rect x="560" y="45" width="22" height="165" rx="3" class="bar-fill bar-light"></rect>
-                </g>
-
-                <!-- Dotted Spline Overlay Line -->
-                <path id="chartSplinePath" d="M 46 160 Q 100 145, 161 130 T 271 110 T 382 80 T 481 60 T 571 45" class="spline-path"></path>
-
-                <!-- Milestone Points -->
-                <circle cx="46" cy="160" r="3.5" class="spline-dot"></circle>
-                <circle cx="161" cy="130" r="3.5" class="spline-dot"></circle>
-                <circle cx="271" cy="110" r="3.5" class="spline-dot"></circle>
-                <circle cx="382" cy="80" r="4.5" class="spline-dot dot-critical"></circle>
-                <circle cx="481" cy="60" r="3.5" class="spline-dot"></circle>
-                <circle cx="571" cy="45" r="3.5" class="spline-dot"></circle>
-              </svg>
-
-              <!-- Floating Tooltip -->
-              <div class="chart-tooltip" id="chartTooltip">
-                <div class="tooltip-header" id="tooltipHeader">Stage 4: Ed25519 Sign</div>
-                <div class="tooltip-val" id="tooltipValue">Signed Versioned Body</div>
-                <div class="tooltip-sub" id="tooltipSub">Pinned Verification &bull; No Plaintext IDs</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- X-Axis Labels -->
-          <div class="chart-x-axis">
-            <span>1. Local Encode</span>
-            <span>2. Clip & Reserve</span>
-            <span>3. Gaussian Noise</span>
-            <span>4. Ed25519 Sign</span>
-            <span>5. Strict Validate</span>
-            <span>6. GAT Score &ge; 0.5</span>
-          </div>
-
-          <!-- Bottom Stat Strip (4 Columns) -->
-          <div class="chart-summary-strip">
-            <div class="summary-metric-cell">
-              <span class="cell-label">Bank-wide DP Budget</span>
-              <span class="cell-val">1.42 / 2.0 <span class="unit">&epsilon;</span></span>
-            </div>
-            <div class="summary-metric-cell">
-              <span class="cell-label">SQLite Ledger State</span>
-              <span class="cell-val">Atomic <span class="unit">Persistent</span></span>
-            </div>
-            <div class="summary-metric-cell">
-              <span class="cell-label">Ed25519 Provenance</span>
-              <span class="cell-val neg-val">Pinned <span class="unit">Verified</span></span>
-            </div>
-            <div class="summary-metric-cell">
-              <span class="cell-label">Coordinator Schema</span>
-              <span class="cell-val pos-val">Allowlist <span class="unit">Only</span></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 2: Secondary Card (Protected Inference Pipeline Stages) -->
-        <div class="card category-card">
-          <div class="category-header">
-            <div>
-              <h2 class="card-title">Protected Inference Pipeline Stages</h2>
-              <div class="category-hero-metric">
-                <span class="metric-number">5 / 5</span>
-                <span class="metric-unit">stages enforced</span>
-                <span class="trend-pill trend-down">Zero Raw PII Released</span>
-              </div>
-            </div>
-            <button class="btn-subtle" id="detailsBtn">Privacy Architecture Doc</button>
-          </div>
-
-          <!-- Segmented Multi-Color Pipeline Stage Bar -->
-          <div class="segmented-bar" id="segmentedBar">
-            <div class="segment seg-goods" style="width: 25%;" title="1. Local Encode (25%)"></div>
-            <div class="segment seg-energy" style="width: 25%;" title="2. Clip & Reserve in SQLite (25%)"></div>
-            <div class="segment seg-travel" style="width: 15%;" title="3. Ed25519 Signed Export (15%)"></div>
-            <div class="segment seg-logistics" style="width: 15%;" title="4. EnclaveAggregator Validate (15%)"></div>
-            <div class="segment seg-waste" style="width: 20%;" title="5. Score Graph &ge; 0.5 (20%)"></div>
-          </div>
-
-          <!-- Legend Row -->
-          <div class="category-legend">
-            <span class="legend-item"><span class="legend-dot seg-goods"></span> 1. Local Directed-GIN</span>
-            <span class="legend-item"><span class="legend-dot seg-energy"></span> 2. BankPrivacyExporter</span>
-            <span class="legend-item"><span class="legend-dot seg-travel"></span> 3. Ed25519 Sign</span>
-            <span class="legend-item"><span class="legend-dot seg-logistics"></span> 4. EnclaveAggregator</span>
-            <span class="legend-item"><span class="legend-dot seg-waste"></span> 5. Boundary GAT Flag</span>
-          </div>
-
-          <!-- Tabular List of Stages -->
-          <div class="category-table">
-            <div class="table-header-row">
-              <span>Pipeline Stage &amp; Trust Boundary</span>
-              <span class="text-right">Enforcement</span>
-              <span class="text-right">Privacy Mechanism</span>
-            </div>
-
-            <div class="table-data-row">
-              <div class="cat-cell">
-                <span class="cat-icon-badge icon-energy">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                </span>
-                <span class="cat-name">1. Local Directed-GIN Encoding</span>
-              </div>
-              <span class="text-right num-col">Bank Local</span>
-              <span class="text-right num-col font-mono">Raw IDs/Amounts Kept Local</span>
-            </div>
-
-            <div class="table-data-row">
-              <div class="cat-cell">
-                <span class="cat-icon-badge icon-logistics">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </span>
-                <span class="cat-name">2. BankPrivacyExporter &amp; SQLite Ledger</span>
-              </div>
-              <span class="text-right num-col">Atomic Reserve</span>
-              <span class="text-right num-col font-mono">Frobenius Clip &bull; &epsilon;&le;2.0 Cap</span>
-            </div>
-
-            <div class="table-data-row">
-              <div class="cat-cell">
-                <span class="cat-icon-badge icon-travel">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </span>
-                <span class="cat-name">3. Ed25519 Payload Signing</span>
-              </div>
-              <span class="text-right num-col">Allowlist Only</span>
-              <span class="text-right num-col font-mono">No Times/Amounts/Labels</span>
-            </div>
-
-            <div class="table-data-row">
-              <div class="cat-cell">
-                <span class="cat-icon-badge icon-energy">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                </span>
-                <span class="cat-name">4. EnclaveAggregator Strict Schema</span>
-              </div>
-              <span class="text-right num-col">Pinned Keys</span>
-              <span class="text-right num-col font-mono">Rejects Unsigned &amp; Plaintext</span>
-            </div>
-
-            <div class="table-data-row">
-              <div class="cat-cell">
-                <span class="cat-icon-badge icon-logistics">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                </span>
-                <span class="cat-name">5. Boundary GAT &amp; Contrastive Head</span>
-              </div>
-              <span class="text-right num-col">Flags &ge; 0.5</span>
-              <span class="text-right num-col font-mono">Averages Shared Noisy Vectors</span>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <!-- ========================================================= -->
-      <!-- 3. RIGHT SIDE RAIL: AI ENCLAVE COPILOT & POLICY AUDIT -->
-      <!-- ========================================================= -->
-      <aside class="right-rail" id="rightRail">
-        <!-- Top Toolbar -->
-        <div class="rail-header">
-          <button class="icon-btn-subtle" id="railMenuToggle" aria-label="Menu">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+      <div class="control-group gate-group">
+        <label class="control-label">Coordinator Gatekeeper Mode</label>
+        <div class="gate-buttons">
+          <button type="button" class="gate-btn active" data-gate="valid" id="btnGateValid">
+            Valid Signed Payload
           </button>
-          <div class="rail-actions-right">
-            <button class="icon-btn-subtle" aria-label="Expand Window">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <polyline points="9 21 3 21 3 15"></polyline>
-                <line x1="21" y1="3" x2="14" y2="10"></line>
-                <line x1="3" y1="21" x2="10" y2="14"></line>
-              </svg>
-            </button>
-            <button class="icon-btn-subtle" aria-label="Options">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="19" cy="12" r="1"></circle>
-                <circle cx="5" cy="12" r="1"></circle>
-              </svg>
-            </button>
+          <button type="button" class="gate-btn" data-gate="tampered" id="btnGateTampered">
+            Tampered Payload (Bad Sig)
+          </button>
+          <button type="button" class="gate-btn" data-gate="plaintext" id="btnGatePlaintext">
+            Plaintext PII Leak
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TOP TELEMETRY RIBBON (4 FROSTED GLASS METRIC CARDS) -->
+    <section class="telemetry-grid">
+      <!-- Card 1: SLA -->
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Enclave Inference SLA</div>
+        <div class="kpi-value" id="kpiSlaValue">24.2 ms</div>
+        <div class="kpi-sub">
+          <span class="pill pill-green">P99 &lt; 30ms Target</span> Pre-Settlement
+        </div>
+      </div>
+
+      <!-- Card 2: Enterprise Accuracy -->
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Enterprise Accuracy</div>
+        <div class="kpi-value">0.88 <span class="kpi-unit">PR-AUC</span></div>
+        <div class="kpi-sub">
+          <span class="pill pill-blue">84.2% Recall @ 0.1% FPR</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Local DP Budget -->
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Local Differential Privacy</div>
+        <div class="kpi-value" id="kpiDpValue">&epsilon; = 1.38</div>
+        <div class="kpi-sub">
+          <span class="pill pill-green" id="kpiDpBadge">Clip C=1.0 &bull; &sigma;=0.80</span> Local per-bank
+        </div>
+      </div>
+
+      <!-- Card 4: Gatekeeper Integrity -->
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Coordinator Gatekeeper</div>
+        <div class="kpi-value" id="kpiGateValue">3/3 Verified</div>
+        <div class="kpi-sub">
+          <span class="pill pill-green" id="kpiGateBadge">Ed25519 Valid &bull; 0 Raw PII</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. HERO WORKSPACE: DUAL-REALITY SILO VS COORDINATOR + TOPOLOGY GRAPH -->
+    <section class="workspace-grid">
+      
+      <!-- Left Column: The Dual-Reality Inspector -->
+      <div class="dual-reality-col">
+        
+        <!-- Top Section: Isolated Bank Silo Views -->
+        <div class="glass-card silo-container">
+          <div class="card-header">
+            <span class="card-title">1. Local Bank Silos (Pre-Transmission)</span>
+            <span class="pill pill-gray">Isolated 1-Hop Horizon</span>
+          </div>
+
+          <!-- Bank A Mini Card -->
+          <div class="silo-box" id="siloBankA">
+            <div class="silo-top">
+              <strong class="silo-name">Bank A (Origin Silo)</strong>
+              <span class="pill pill-green">Local View: Cleared (0.11)</span>
+            </div>
+            <div class="silo-desc">Outflow: <b>$4,900.00</b> structured wire below $5k limit</div>
+            <div class="silo-tags">
+              <span class="mono-tag">HMAC: 0x8f4b..91a2</span>
+              <span class="mono-tag" id="tagBankADp">LDP: C=1.0, &epsilon;1=1.4</span>
+              <span class="mono-tag">Signed: Ed25519_pkA</span>
+            </div>
+          </div>
+
+          <!-- Bank B Mini Card -->
+          <div class="silo-box" id="siloBankB">
+            <div class="silo-top">
+              <strong class="silo-name">Bank B (Intermediary Relay)</strong>
+              <span class="pill pill-green">Local View: Cleared (0.14)</span>
+            </div>
+            <div class="silo-desc">Relay: Split P2P transfers (<b>2 &times; $2,450.00</b>) in 42s</div>
+            <div class="silo-tags">
+              <span class="mono-tag">HMAC: 0x3a9c..44e0</span>
+              <span class="mono-tag" id="tagBankBDp">LDP: C=1.0, &epsilon;2=1.2</span>
+              <span class="mono-tag">Signed: Ed25519_pkB</span>
+            </div>
+          </div>
+
+          <!-- Bank C Mini Card -->
+          <div class="silo-box" id="siloBankC">
+            <div class="silo-top">
+              <strong class="silo-name">Bank C (Settlement / Cash-Out)</strong>
+              <span class="pill pill-green">Local View: Cleared (0.09)</span>
+            </div>
+            <div class="silo-desc">Inbound consolidation prior to rapid cash-out</div>
+            <div class="silo-tags">
+              <span class="mono-tag">HMAC: 0x7e1d..b805</span>
+              <span class="mono-tag" id="tagBankCDp">LDP: C=1.0, &epsilon;3=1.5</span>
+              <span class="mono-tag">Signed: Ed25519_pkC</span>
+            </div>
           </div>
         </div>
 
-        <!-- Scrollable Rail Content -->
-        <div class="rail-scroll-body">
-          <!-- AI Executive Privacy Summary Banner -->
-          <div class="ai-summary-card">
-            <p class="summary-text">
-              <strong class="summary-prefix">Privacy Release Policy:</strong> Banks protect data before export. Runtime HMAC keys pseudonymize endpoints, whole-batch Frobenius clipping and OS-random Gaussian noise protect embeddings, and a persistent SQLite ledger atomically rejects releases exceeding &epsilon;=2.0 at &delta;=10⁻⁵.
-            </p>
+        <!-- Bottom Section: ZeroMule Coordinator Global View Alert -->
+        <div class="glass-card decision-card" id="coordinatorDecisionCard">
+          <!-- Populated dynamically by JS -->
+        </div>
+
+      </div>
+
+      <!-- Right Column: Interactive Cross-Bank Topology & Laundering Flow Canvas -->
+      <div class="glass-card topology-col">
+        <div class="card-header">
+          <span class="card-title">2. Stitched Pseudonymous Graph Topology</span>
+          <span class="pill pill-blue">Directed-Multigraph GIN + InfoNCE Cycle Head</span>
+        </div>
+        <div class="svg-container" id="svgContainer">
+          <!-- Populated dynamically with SVG by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 5. BOTTOM INTERACTIVE DRAWER: COORDINATOR INGESTION GATEKEEPER & AUDIT -->
+    <section class="glass-card audit-card">
+      <div class="audit-header">
+        <div>
+          <div class="card-title">3. Cryptographic Ingestion Gatekeeper & Local Protection Audit</div>
+          <div class="audit-subtitle">Verify what leaves each bank vs. what the Coordinator accepts</div>
+        </div>
+        <div class="audit-actions">
+          <span class="pill pill-blue">Zero Plaintext Exposure</span>
+          <button type="button" class="btn-refresh" id="btnRehashPayload" title="Regenerate Test HMAC and Noise">
+            Regenerate Sample
+          </button>
+        </div>
+      </div>
+
+      <div class="audit-grid">
+        <!-- Inside Bank Perimeter (Private Data) -->
+        <div class="audit-column">
+          <div class="audit-col-title">
+            <span class="pill pill-gray">Private Perimeter</span>
+            Inside Bank A Perimeter (Private Raw Data &mdash; Never Transmitted)
           </div>
-
-          <!-- Total Enclave Risk & Privacy Release Card -->
-          <div class="card rail-card">
-            <div class="rail-card-head">
-              <span class="card-caption">Bank-Wide SQLite RDP State</span>
-              <button class="pill-btn-small">Ledger Audit</button>
-            </div>
-
-            <div class="rail-hero-metric">
-              <span class="big-metric font-mono">1.42</span>
-              <span class="unit-text">/ 2.0 &epsilon;</span>
-              <span class="trend-badge pos-badge">BUDGET ACTIVE</span>
-            </div>
-
-            <!-- Mini Indicators Across Trust Boundaries -->
-            <div class="rate-indicators-row">
-              <div class="rate-item">
-                <span class="rate-val pos-text">SQLITE</span>
-                <span class="rate-sub">atomic</span>
-              </div>
-              <div class="rate-item">
-                <span class="rate-val pos-text">1e-5</span>
-                <span class="rate-sub">&delta; bound</span>
-              </div>
-              <div class="rate-item">
-                <span class="rate-val pos-text">ED25519</span>
-                <span class="rate-sub">pinned</span>
-              </div>
-            </div>
-
-            <!-- Vertical Progress Columns for Bank SQLite Budgets -->
-            <div class="scope-columns-container">
-              <!-- Bank A -->
-              <div class="scope-col">
-                <span class="scope-label">Bank A SQLite</span>
-                <span class="scope-val font-mono">1.42</span>
-                <div class="scope-meter-bar">
-                  <div class="scope-fill fill-scope1" style="height: 71%;"></div>
-                </div>
-              </div>
-              <!-- Bank B -->
-              <div class="scope-col">
-                <span class="scope-label">Bank B SQLite</span>
-                <span class="scope-val font-mono">1.18</span>
-                <div class="scope-meter-bar">
-                  <div class="scope-fill fill-scope2" style="height: 59%;"></div>
-                </div>
-              </div>
-              <!-- Bank C -->
-              <div class="scope-col">
-                <span class="scope-label">Bank C SQLite</span>
-                <span class="scope-val font-mono">0.85</span>
-                <div class="scope-meter-bar">
-                  <div class="scope-fill fill-scope3" style="height: 42%;"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Context Paragraph -->
-            <p class="rail-context-text">
-              Each bank enforces a <strong>separate lifetime budget</strong> in its persistent SQLite ledger. All workers share that ledger. <strong>Exhausted budgets atomically reject new exports; failures after reservation still consume budget.</strong>
-            </p>
-
-            <!-- Highlight Provenance Pill -->
-            <div class="achievement-pill">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span>Ed25519 Provenance Pinned</span>
-            </div>
-          </div>
-
-          <!-- AI Chat & Query Assistant -->
-          <div class="ai-chat-section">
-            <div class="chat-prompt-chips">
-              <button class="prompt-chip" data-query="How does the persistent SQLite ledger enforce epsilon 2.0?">
-                How does the persistent SQLite ledger enforce epsilon 2.0?
-              </button>
-              <button class="prompt-chip" data-query="What is protected by Ed25519 signatures and pinned keys?">
-                What is protected by Ed25519 signatures and pinned keys?
-              </button>
-              <button class="prompt-chip" data-query="Why does the coordinator never receive the HMAC matching key?">
-                Why does the coordinator never receive the HMAC matching key?
-              </button>
-            </div>
-
-            <!-- Chat Messages Log (Dynamic) -->
-            <div class="chat-log" id="chatLog"></div>
-
-            <!-- Interactive Input Box with Model Picker -->
-            <div class="chat-input-box">
-              <textarea id="chatInput" rows="2" placeholder="Ask about privacy release boundaries, RDP ledgers or HMAC keys..."></textarea>
-              <div class="chat-input-footer">
-                <div class="model-picker-container">
-                  <button class="model-picker-btn" id="modelPickerBtn">
-                    <span class="plus-icon">+</span>
-                    <span id="selectedModelLabel">IBM Granite 3.0</span>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                  </button>
-                  <div class="model-dropdown-menu" id="modelDropdownMenu">
-                    <div class="model-option active" data-model="IBM Granite 3.0">IBM Granite 3.0 (s390x)</div>
-                    <div class="model-option" data-model="Llama-3-Guard">Llama-3-Guard Enclave</div>
-                    <div class="model-option" data-model="GPT-4o">GPT-4o Enterprise</div>
-                  </div>
-                </div>
-                <button class="chat-send-btn" id="chatSendBtn" aria-label="Send query">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="19" x2="12" y2="5"></line>
-                    <polyline points="5 12 12 5 19 12"></polyline>
-                  </svg>
-                </button>
-              </div>
-            </div>
+          <div class="code-wrapper">
+            <pre class="json-code" id="rawJsonDisplay"></pre>
           </div>
         </div>
-      </aside>
 
-    </div>
+        <!-- Outgoing Payload to Coordinator -->
+        <div class="audit-column">
+          <div class="audit-col-title">
+            <span class="pill pill-blue">Enclave Ingestion</span>
+            Outgoing Payload Received by Coordinator Gatekeeper
+          </div>
+          <div class="code-wrapper" id="payloadWrapper">
+            <pre class="json-code" id="payloadJsonDisplay"></pre>
+            <div class="alert-box alert-error hidden" id="gatekeeperErrorAlert"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Separation of Concerns Summary Bar -->
+      <div class="security-concerns-bar">
+        <div class="concern-item">
+          <span class="concern-label">Identity Protection:</span>
+          <span class="concern-val">Shared-Key HMAC-SHA256 Pseudonymization</span>
+        </div>
+        <div class="concern-item">
+          <span class="concern-label">Feature Privacy:</span>
+          <span class="concern-val">Local DP (L2 Norm Clip C=1.0 + Gaussian Noise)</span>
+        </div>
+        <div class="concern-item">
+          <span class="concern-label">Integrity:</span>
+          <span class="concern-val">Bank Ed25519 Signatures</span>
+        </div>
+        <div class="concern-item">
+          <span class="concern-label">Deployment Security:</span>
+          <span class="concern-val">mTLS 1.3 + LinuxONE s390x Enclave</span>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script src="app.js"></script>

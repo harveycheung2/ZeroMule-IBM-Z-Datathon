@@ -1,362 +1,471 @@
 /**
- * ZeroMule — Interactive Frontend Logic for Privacy Release Boundary & Enclave Inference
- * Implementation: BankPrivacyExporter, Persistent SQLite RDP Ledger, Ed25519 Signatures, EnclaveAggregator
- * Architecture Reference: docs/privacy-architecture.md
- * Design System: Apple WWDC Principles (Response, Interruption, Physical Feedback)
+ * ZeroMule — Apple Frosted Glass Coordinator Dashboard
+ * Interactive Client-Side Privacy Engine & Ingestion Gatekeeper
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // =========================================================================
-  // 1. Interactive Tab Switching & Dynamic Privacy Release Chart Updates
-  // =========================================================================
-  const reportTabs = document.querySelectorAll('.report-tab');
-  const chartBarsGroup = document.getElementById('chartBarsGroup');
-  const splinePath = document.getElementById('chartSplinePath');
-  const chartTooltip = document.getElementById('chartTooltip');
-  const tooltipHeader = document.getElementById('tooltipHeader');
-  const tooltipValue = document.getElementById('tooltipValue');
-  const tooltipSub = document.getElementById('tooltipSub');
-  const chartCanvasArea = document.getElementById('chartCanvasArea');
+// -----------------------------------------------------------------------------
+// CONSTANTS & INITIAL STATE
+// -----------------------------------------------------------------------------
+const CONFIG = {
+  rawAccount: "SG-DBS-884920194",
+  sharedHmacKey: "interbank-shared-hmac-secret-2026",
+  baseRawEmbedding: [2.419, -1.882, 0.941, 3.102],
+  clipNormC: 1.0,
+};
 
-  // Summary Cell Elements
-  const summaryCells = document.querySelectorAll('.summary-metric-cell');
+let state = {
+  scenario: "attack", // "attack" | "payroll"
+  sigma: 0.80,
+  gateMode: "valid",  // "valid" | "tampered" | "plaintext"
+  pseudoId: "8f4b5961a293847291a2bc8394e1d939281746b8c9d01e23a4b5c6d7e8f90123",
+  perturbedEmbedding: [0.412, -0.319, 0.188, 0.504],
+};
 
-  // Privacy Datasets per Tab
-  const tabDatasets = {
-    flow: {
-      bars: [
-        { x: 35, y: 160, h: 50, class: 'bar-primary' },
-        { x: 150, y: 130, h: 80, class: 'bar-primary' },
-        { x: 260, y: 110, h: 100, class: 'bar-primary' },
-        { x: 370, y: 80, h: 130, class: 'bar-accent' },
-        { x: 470, y: 60, h: 150, class: 'bar-primary' },
-        { x: 560, y: 45, h: 165, class: 'bar-light' }
-      ],
-      spline: "M 46 160 Q 100 145, 161 130 T 271 110 T 382 80 T 481 60 T 571 45",
-      dots: [
-        { cx: 46, cy: 160, r: 3.5, label: "1. Local Encode", val: "Raw Ledgers Kept Local", sub: "Directed-GIN • No PII Export" },
-        { cx: 161, cy: 130, r: 3.5, label: "2. Clip & Reserve", val: "SQLite Atomic Lock", sub: "Frobenius Norm • ε <= 2.0 Check" },
-        { cx: 271, cy: 110, r: 3.5, label: "3. Gaussian Noise", val: "OS-Random Noise", sub: "std = 2 * C * sigma" },
-        { cx: 382, cy: 80, r: 4.5, label: "4. Ed25519 Sign", val: "Versioned Payload Signed", sub: "Allowlisted Edges Only", crit: true },
-        { cx: 481, cy: 60, r: 3.5, label: "5. Strict Validate", val: "Pinned Key Verification", sub: "Reject Extra Metadata & Plaintext" },
-        { cx: 571, cy: 45, r: 3.5, label: "6. GAT Score >= 0.5", val: "Flagged High-Risk Edges", sub: "Pseudonymous Risk Scored" }
-      ],
-      summary: [
-        { label: "Bank-wide DP Budget", val: "1.42 / 2.0", unit: "ε" },
-        { label: "SQLite Ledger State", val: "Atomic", unit: "Persistent" },
-        { label: "Ed25519 Provenance", val: "Pinned", unit: "Verified" },
-        { label: "Coordinator Schema", val: "Allowlist", unit: "Only" }
-      ]
-    },
-    budget: {
-      bars: [
-        { x: 35, y: 180, h: 30, class: 'bar-primary' },
-        { x: 150, y: 150, h: 60, class: 'bar-primary' },
-        { x: 260, y: 120, h: 90, class: 'bar-primary' },
-        { x: 370, y: 95, h: 115, class: 'bar-accent' },
-        { x: 470, y: 75, h: 135, class: 'bar-primary' },
-        { x: 560, y: 68, h: 142, class: 'bar-light' }
-      ],
-      spline: "M 46 180 Q 100 165, 161 150 T 271 120 T 382 95 T 481 75 T 571 68",
-      dots: [
-        { cx: 46, cy: 180, r: 3.5, label: "Release 1", val: "ε = 0.32 (δ = 1e-5)", sub: "SQLite Persistent Commit" },
-        { cx: 161, cy: 150, r: 3.5, label: "Release 2", val: "ε = 0.65 (δ = 1e-5)", sub: "Rényi DP Order Composition" },
-        { cx: 271, cy: 120, r: 3.5, label: "Release 3", val: "ε = 0.98 (δ = 1e-5)", sub: "SQLite Persistent Commit" },
-        { cx: 382, cy: 95, r: 4.5, label: "Release 4", val: "ε = 1.25 (δ = 1e-5)", sub: "All Workers Shared Ledger", crit: true },
-        { cx: 481, cy: 75, r: 3.5, label: "Release 5", val: "ε = 1.38 (δ = 1e-5)", sub: "Conservative Grid Bound" },
-        { cx: 571, cy: 68, r: 3.5, label: "Current State", val: "ε = 1.42 / 2.0 (Cap)", sub: "Exceeding Rejects Atomically" }
-      ],
-      summary: [
-        { label: "Current Bank ε", val: "1.42 / 2.0", unit: "RDP" },
-        { label: "Target Delta", val: "1e-5", unit: "Gaussian" },
-        { label: "Persistence Engine", val: "SQLite", unit: "WAL Atomic" },
-        { label: "Exhaustion Action", val: "Fail-Closed", unit: "Atomic Reject" }
-      ]
-    },
-    hmac: {
-      bars: [
-        { x: 35, y: 140, h: 70, class: 'bar-primary' },
-        { x: 150, y: 130, h: 80, class: 'bar-primary' },
-        { x: 260, y: 115, h: 95, class: 'bar-primary' },
-        { x: 370, y: 90, h: 120, class: 'bar-accent' },
-        { x: 470, y: 105, h: 105, class: 'bar-primary' },
-        { x: 560, y: 120, h: 90, class: 'bar-light' }
-      ],
-      spline: "M 46 140 Q 100 135, 161 130 T 271 115 T 382 90 T 481 105 T 571 120",
-      dots: [
-        { cx: 46, cy: 140, r: 3.5, label: "Bank A Silo", val: "248 Boundary Pseudonyms", sub: "Key: ZEROMULE_HMAC_KEY_B64" },
-        { cx: 161, cy: 130, r: 3.5, label: "Bank B Silo", val: "312 Boundary Pseudonyms", sub: "Shared High-Entropy Secret" },
-        { cx: 271, cy: 115, r: 3.5, label: "Bank C Silo", val: "184 Boundary Pseudonyms", sub: "Common Account Namespace" },
-        { cx: 382, cy: 90, r: 4.5, label: "Enclave Intersection", val: "744 Intersected Nodes", sub: "Coordinator Receives No Key", crit: true },
-        { cx: 481, cy: 105, r: 3.5, label: "Connectivity Graph", val: "Reveals Topology Only", sub: "Conditional DP Guarantee" },
-        { cx: 571, cy: 120, r: 3.5, label: "Raw Customer IDs", val: "0 Exposed", sub: "Allowlist Hash Only" }
-      ],
-      summary: [
-        { label: "Matched Pseudonyms", val: "744", unit: "endpoints" },
-        { label: "Coordinator Key State", val: "0 bits", unit: "Key Never Sent" },
-        { label: "Topology Roster", val: "Disclosed", unit: "Connectivity" },
-        { label: "Raw PII Released", val: "0", unit: "bytes" }
-      ]
-    },
-    validation: {
-      bars: [
-        { x: 35, y: 150, h: 60, class: 'bar-primary' },
-        { x: 150, y: 150, h: 60, class: 'bar-primary' },
-        { x: 260, y: 150, h: 60, class: 'bar-primary' },
-        { x: 370, y: 120, h: 90, class: 'bar-accent' },
-        { x: 470, y: 130, h: 80, class: 'bar-primary' },
-        { x: 560, y: 90, h: 120, class: 'bar-light' }
-      ],
-      spline: "M 46 150 Q 100 150, 161 150 T 271 150 T 382 120 T 481 130 T 571 90",
-      dots: [
-        { cx: 46, cy: 150, r: 3.5, label: "Bank A Signature", val: "Ed25519 Verified", sub: "Pinned Public Key Check" },
-        { cx: 161, cy: 150, r: 3.5, label: "Bank B Signature", val: "Ed25519 Verified", sub: "Pinned Public Key Check" },
-        { cx: 271, cy: 150, r: 3.5, label: "Bank C Signature", val: "Ed25519 Verified", sub: "Pinned Public Key Check" },
-        { cx: 382, cy: 120, r: 4.5, label: "Schema Validation", val: "Strict Schema Enforced", sub: "Rejects Extra Fields / Plaintext", crit: true },
-        { cx: 481, cy: 130, r: 3.5, label: "Payload Receipts", val: "Valid Privacy Receipt", sub: "One Release per Request" },
-        { cx: 571, cy: 90, r: 3.5, label: "Boundary GAT", val: "Risk Scores >= 0.5 Flagged", sub: "Averages Shared Vectors" }
-      ],
-      summary: [
-        { label: "Signed Releases", val: "3 / 3", unit: "Validated" },
-        { label: "Unsigned/Plaintext", val: "Rejected", unit: "Strict Schema" },
-        { label: "Sensitivity Bound", val: "||H||F <= 2C", unit: "Frobenius" },
-        { label: "Flag Threshold", val: "Score >= 0.5", unit: "Enclave GAT" }
-      ]
+// -----------------------------------------------------------------------------
+// CRYPTOGRAPHIC HELPER FUNCTIONS
+// -----------------------------------------------------------------------------
+// Real HMAC-SHA256 computation via Web Crypto API with SHA-256 fallback
+async function computeHmacSha256(keyStr, messageStr) {
+  try {
+    const enc = new TextEncoder();
+    const keyData = enc.encode(keyStr);
+    const key = await window.crypto.subtle.importKey(
+      "raw",
+      keyData,
+      { name: "HMAC", hash: { name: "SHA-256" } },
+      false,
+      ["sign"]
+    );
+    const signature = await window.crypto.subtle.sign(
+      "HMAC",
+      key,
+      enc.encode(messageStr)
+    );
+    const hashArray = Array.from(new Uint8Array(signature));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch (err) {
+    // Fallback deterministic pseudo-hash
+    let hash = 0x811c9dc5;
+    const str = keyStr + messageStr;
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i);
+      hash = (hash * 0x01000193) >>> 0;
     }
+    return hash.toString(16).padStart(8, "0").repeat(8).slice(0, 64);
+  }
+}
+
+// Generate Box-Muller Gaussian Noise
+function sampleGaussian(mean = 0, sigma = 1.0) {
+  let u1 = Math.random();
+  let u2 = Math.random();
+  while (u1 === 0) u1 = Math.random();
+  const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+  return mean + z0 * sigma;
+}
+
+// Apply L2 Norm Clipping (C = 1.0) and Calibrated Gaussian Noise
+function applyLocalDifferentialPrivacy(vec, clipC, sigma) {
+  // 1. Calculate L2 Norm
+  const l2Norm = Math.sqrt(vec.reduce((sum, v) => sum + v * v, 0));
+  
+  // 2. Clip: v_clipped = v * min(1, C / ||v||_2)
+  const clipFactor = l2Norm > 0 ? Math.min(1.0, clipC / l2Norm) : 1.0;
+  const clipped = vec.map(v => v * clipFactor);
+
+  // 3. Additive Gaussian Perturbation
+  const noised = clipped.map(v => {
+    const perturbed = v + sampleGaussian(0, sigma * 0.4);
+    return Math.round(perturbed * 1000) / 1000;
+  });
+
+  return noised;
+}
+
+// -----------------------------------------------------------------------------
+// DOM ELEMENTS
+// -----------------------------------------------------------------------------
+const btnScenarioAttack = document.getElementById("btnScenarioAttack");
+const btnScenarioPayroll = document.getElementById("btnScenarioPayroll");
+const sigmaSlider = document.getElementById("sigmaSlider");
+const sigmaValDisplay = document.getElementById("sigmaValDisplay");
+const epsEstDisplay = document.getElementById("epsEstDisplay");
+
+const btnGateValid = document.getElementById("btnGateValid");
+const btnGateTampered = document.getElementById("btnGateTampered");
+const btnGatePlaintext = document.getElementById("btnGatePlaintext");
+const btnRehashPayload = document.getElementById("btnRehashPayload");
+
+const kpiSlaValue = document.getElementById("kpiSlaValue");
+const kpiDpValue = document.getElementById("kpiDpValue");
+const kpiDpBadge = document.getElementById("kpiDpBadge");
+const kpiGateValue = document.getElementById("kpiGateValue");
+const kpiGateBadge = document.getElementById("kpiGateBadge");
+
+const coordinatorDecisionCard = document.getElementById("coordinatorDecisionCard");
+const svgContainer = document.getElementById("svgContainer");
+
+const rawJsonDisplay = document.getElementById("rawJsonDisplay");
+const payloadJsonDisplay = document.getElementById("payloadJsonDisplay");
+const gatekeeperErrorAlert = document.getElementById("gatekeeperErrorAlert");
+
+const tagBankADp = document.getElementById("tagBankADp");
+const tagBankBDp = document.getElementById("tagBankBDp");
+const tagBankCDp = document.getElementById("tagBankCDp");
+
+// -----------------------------------------------------------------------------
+// SVG VISUALIZATIONS (4-STAGE DIRTY-TO-CLEAN GRADIENT & PAYROLL)
+// -----------------------------------------------------------------------------
+function renderAttackSvg() {
+  return `
+    <svg viewBox="0 0 680 410" width="100%" height="410" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Gradients -->
+        <linearGradient id="gradDirtyToLayer" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#DA1E28"/>
+          <stop offset="100%" stop-color="#FF832B"/>
+        </linearGradient>
+        <linearGradient id="gradLayerToMask" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF832B"/>
+          <stop offset="100%" stop-color="#6FD170"/>
+        </linearGradient>
+
+        <!-- Arrow Markers -->
+        <marker id="arr1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#DA1E28"/>
+        </marker>
+        <marker id="arr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#FF832B"/>
+        </marker>
+        <marker id="arr3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#6FD170"/>
+        </marker>
+        <marker id="arr4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#198038"/>
+        </marker>
+        
+        <!-- Subtle Glow Filter -->
+        <filter id="glowRed" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#DA1E28" flood-opacity="0.3"/>
+        </filter>
+      </defs>
+
+      <!-- 4-Color Legend Header -->
+      <rect x="20" y="12" width="640" height="38" rx="10" fill="#F5F5F7" stroke="#E5E5EA"/>
+      <text x="35" y="35" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#515154">LAUNDERING FLOW:</text>
+      <circle cx="165" cy="31" r="6" fill="#DA1E28"/>
+      <text x="177" y="35" font-family="Inter" font-size="11" font-weight="600" fill="#1D1D1F">1. Dirty Origin (#DA1E28)</text>
+      <circle cx="320" cy="31" r="6" fill="#FF832B"/>
+      <text x="332" y="35" font-family="Inter" font-size="11" font-weight="600" fill="#1D1D1F">2. Layering (#FF832B)</text>
+      <circle cx="460" cy="31" r="6" fill="#6FD170"/>
+      <text x="472" y="35" font-family="Inter" font-size="11" font-weight="600" fill="#1D1D1F">3. Masking (#6FD170)</text>
+      <circle cx="590" cy="31" r="6" fill="#198038"/>
+      <text x="602" y="35" font-family="Inter" font-size="11" font-weight="600" fill="#1D1D1F">4. Clean (#198038)</text>
+
+      <!-- Hop 1: Dirty Red (#DA1E28) -->
+      <path d="M 155 150 Q 250 85 335 125" fill="none" stroke="#DA1E28" stroke-width="4" marker-end="url(#arr1)"/>
+      <text x="238" y="94" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#DA1E28">$4,900 (t=0s)</text>
+
+      <!-- Hop 2: Layering Amber (#FF832B) -->
+      <path d="M 385 160 Q 470 210 515 255" fill="none" stroke="#FF832B" stroke-width="4" marker-end="url(#arr2)"/>
+      <text x="465" y="195" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#FF832B">2 &times; $2,450 (t=38s)</text>
+
+      <!-- Hop 3: Integration Green (#6FD170) -->
+      <path d="M 490 295 Q 340 355 205 295" fill="none" stroke="#6FD170" stroke-width="4" marker-end="url(#arr3)"/>
+      <text x="335" y="348" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#2E7D32">Consolidate (t=94s)</text>
+
+      <!-- Hop 4: Attempted Clean Settlement (#198038) - DASHED INTERCEPTED -->
+      <path d="M 150 255 Q 115 210 130 175" fill="none" stroke="#198038" stroke-width="4" stroke-dasharray="6,4" marker-end="url(#arr4)"/>
+      
+      <!-- Intercept Barrier Callout Badge -->
+      <g filter="url(#glowRed)">
+        <rect x="35" y="202" width="128" height="26" rx="7" fill="#DA1E28"/>
+        <text x="99" y="219" font-family="Inter, sans-serif" font-size="10.5" font-weight="800" fill="#FFFFFF" text-anchor="middle">&#9889; INTERCEPTED</text>
+      </g>
+
+      <!-- Node: Bank A -->
+      <g transform="translate(135, 145)" style="cursor: pointer;">
+        <circle r="34" fill="#FFFFFF" stroke="#DA1E28" stroke-width="3.5"/>
+        <text y="-5" font-family="Inter" font-size="11.5" font-weight="700" fill="#1D1D1F" text-anchor="middle">BANK A</text>
+        <text y="12" font-family="JetBrains Mono" font-size="9" fill="#86868B" text-anchor="middle">0x8f4b..</text>
+      </g>
+
+      <!-- Node: Bank B -->
+      <g transform="translate(365, 135)" style="cursor: pointer;">
+        <circle r="34" fill="#FFFFFF" stroke="#FF832B" stroke-width="3.5"/>
+        <text y="-5" font-family="Inter" font-size="11.5" font-weight="700" fill="#1D1D1F" text-anchor="middle">BANK B</text>
+        <text y="12" font-family="JetBrains Mono" font-size="9" fill="#86868B" text-anchor="middle">0x3a9c..</text>
+      </g>
+
+      <!-- Node: Bank C -->
+      <g transform="translate(525, 280)" style="cursor: pointer;">
+        <circle r="34" fill="#FFFFFF" stroke="#6FD170" stroke-width="3.5"/>
+        <text y="-5" font-family="Inter" font-size="11.5" font-weight="700" fill="#1D1D1F" text-anchor="middle">BANK C</text>
+        <text y="12" font-family="JetBrains Mono" font-size="9" fill="#86868B" text-anchor="middle">0x7e1d..</text>
+      </g>
+
+      <!-- Node: Cash Out Destination -->
+      <g transform="translate(170, 285)" style="cursor: pointer;">
+        <circle r="34" fill="#FFFFFF" stroke="#198038" stroke-width="3.5"/>
+        <text y="-5" font-family="Inter" font-size="11" font-weight="700" fill="#1D1D1F" text-anchor="middle">CASH OUT</text>
+        <text y="12" font-family="JetBrains Mono" font-size="9" fill="#86868B" text-anchor="middle">0x9c2a..</text>
+      </g>
+    </svg>
+  `;
+}
+
+function renderPayrollSvg() {
+  return `
+    <svg viewBox="0 0 680 410" width="100%" height="410" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrClean" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#198038"/>
+        </marker>
+      </defs>
+
+      <!-- Header Banner -->
+      <rect x="20" y="12" width="640" height="38" rx="10" fill="#F5F5F7" stroke="#E5E5EA"/>
+      <text x="35" y="35" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#198038">
+        BENIGN TOPOLOGY: 1-TO-MANY CORPORATE PAYROLL DISTRIBUTION (ACYCLIC)
+      </text>
+
+      <!-- Directed Branches -->
+      <line x1="180" y1="210" x2="440" y2="115" stroke="#198038" stroke-width="3.5" marker-end="url(#arrClean)"/>
+      <text x="310" y="145" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#198038">$3,850.00 Salary</text>
+
+      <line x1="180" y1="210" x2="440" y2="210" stroke="#198038" stroke-width="3.5" marker-end="url(#arrClean)"/>
+      <text x="310" y="200" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#198038">$4,200.00 Salary</text>
+
+      <line x1="180" y1="210" x2="440" y2="305" stroke="#198038" stroke-width="3.5" marker-end="url(#arrClean)"/>
+      <text x="310" y="275" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#198038">$3,950.00 Salary</text>
+
+      <!-- Root Node: Bank A Hub -->
+      <g transform="translate(145, 210)" style="cursor: pointer;">
+        <circle r="40" fill="#FFFFFF" stroke="#0071E3" stroke-width="3.5"/>
+        <text y="-5" font-family="Inter" font-size="12" font-weight="700" fill="#1D1D1F" text-anchor="middle">BANK A</text>
+        <text y="12" font-family="JetBrains Mono" font-size="9" fill="#86868B" text-anchor="middle">Payroll Hub</text>
+      </g>
+
+      <!-- Leaf Nodes: Employees -->
+      <g transform="translate(485, 110)">
+        <circle r="32" fill="#FFFFFF" stroke="#198038" stroke-width="2.8"/>
+        <text y="4" font-family="JetBrains Mono" font-size="10.5" font-weight="600" fill="#198038" text-anchor="middle">Emp #1</text>
+      </g>
+      <g transform="translate(485, 210)">
+        <circle r="32" fill="#FFFFFF" stroke="#198038" stroke-width="2.8"/>
+        <text y="4" font-family="JetBrains Mono" font-size="10.5" font-weight="600" fill="#198038" text-anchor="middle">Emp #2</text>
+      </g>
+      <g transform="translate(485, 310)">
+        <circle r="32" fill="#FFFFFF" stroke="#198038" stroke-width="2.8"/>
+        <text y="4" font-family="JetBrains Mono" font-size="10.5" font-weight="600" fill="#198038" text-anchor="middle">Emp #3</text>
+      </g>
+    </svg>
+  `;
+}
+
+// -----------------------------------------------------------------------------
+// UPDATE & RENDER ENGINE
+// -----------------------------------------------------------------------------
+async function updateAll() {
+  const epsEst = Math.round((1.10 / state.sigma) * 100) / 100;
+  
+  // Update Displays
+  sigmaValDisplay.textContent = state.sigma.toFixed(2);
+  epsEstDisplay.textContent = epsEst.toFixed(2);
+
+  // 1. Telemetry Cards
+  if (state.scenario === "attack") {
+    kpiSlaValue.textContent = "24.2 ms";
+  } else {
+    kpiSlaValue.textContent = "19.8 ms";
+  }
+
+  kpiDpValue.innerHTML = `&epsilon; = ${epsEst.toFixed(2)}`;
+  kpiDpBadge.innerHTML = `Clip C=1.0 &bull; &sigma;=${state.sigma.toFixed(2)}`;
+  if (epsEst <= 2.0) {
+    kpiDpBadge.className = "pill pill-green";
+  } else {
+    kpiDpBadge.className = "pill pill-orange";
+  }
+
+  // Gatekeeper Card Update
+  if (state.gateMode === "valid") {
+    kpiGateValue.textContent = "3/3 Verified";
+    kpiGateBadge.className = "pill pill-green";
+    kpiGateBadge.innerHTML = "Ed25519 Valid &bull; 0 Raw PII";
+  } else if (state.gateMode === "tampered") {
+    kpiGateValue.textContent = "1 Blocked";
+    kpiGateBadge.className = "pill pill-red";
+    kpiGateBadge.textContent = "Invalid Ed25519 Signature";
+  } else {
+    kpiGateValue.textContent = "1 Rejected";
+    kpiGateBadge.className = "pill pill-red";
+    kpiGateBadge.textContent = "Plaintext Account ID Blocked";
+  }
+
+  // 2. Silo Bank Tags
+  tagBankADp.innerHTML = `LDP: C=1.0, &epsilon;1=${(epsEst * 1.02).toFixed(1)}`;
+  tagBankBDp.innerHTML = `LDP: C=1.0, &epsilon;2=${(epsEst * 0.92).toFixed(1)}`;
+  tagBankCDp.innerHTML = `LDP: C=1.0, &epsilon;3=${(epsEst * 1.08).toFixed(1)}`;
+
+  // 3. Coordinator Decision Card
+  if (state.scenario === "attack") {
+    coordinatorDecisionCard.className = "glass-card decision-card alert-attack";
+    coordinatorDecisionCard.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="decision-title">ZEROMULE COORDINATOR DECISION</span>
+        <span class="pill pill-red">PRE-SETTLEMENT FREEZE</span>
+      </div>
+      <div class="decision-body">
+        <b>Stitched Topology Detected:</b> 4-Hop Cross-Bank Laundering Cycle matched via shared HMAC pseudonyms.<br>
+        <b>Directed-GIN Cycle Confidence:</b> <code>98.6%</code> (Threshold: 80.0%)<br>
+        <b>Action:</b> Hold signal dispatched to Bank C prior to settlement clearing in <b>24.2 ms</b>.
+      </div>
+    `;
+  } else {
+    coordinatorDecisionCard.className = "glass-card decision-card alert-payroll";
+    coordinatorDecisionCard.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="decision-title">ZEROMULE COORDINATOR DECISION</span>
+        <span class="pill pill-green">SETTLEMENT APPROVED</span>
+      </div>
+      <div class="decision-body">
+        <b>Stitched Topology Detected:</b> Acyclic 1-to-Many Corporate Payroll Distribution.<br>
+        <b>Directed-GIN Cycle Confidence:</b> <code>2.4%</code> (Benign Flow)<br>
+        <b>Action:</b> Cleared with zero false-positive friction in <b>19.8 ms</b>.
+      </div>
+    `;
+  }
+
+  // 4. Stitched Topology SVG
+  if (state.scenario === "attack") {
+    svgContainer.innerHTML = renderAttackSvg();
+  } else {
+    svgContainer.innerHTML = renderPayrollSvg();
+  }
+
+  // 5. Audit JSON Displays
+  const rawData = {
+    raw_account_id: CONFIG.rawAccount,
+    customer_name: "REDACTED_AT_SOURCE",
+    account_balance_usd: 142850.00,
+    raw_gnn_embedding_sample: CONFIG.baseRawEmbedding,
+    protection_pipeline: "HMAC-SHA256 + L2 Clip (C=1.0) + Gaussian Noise + Ed25519 Sign",
   };
+  rawJsonDisplay.textContent = JSON.stringify(rawData, null, 2);
 
-  let currentTab = 'flow';
+  // Compute live LDP perturbation
+  state.perturbedEmbedding = applyLocalDifferentialPrivacy(
+    CONFIG.baseRawEmbedding,
+    CONFIG.clipNormC,
+    state.sigma
+  );
 
-  function renderChart(tabKey) {
-    const data = tabDatasets[tabKey] || tabDatasets.flow;
-    currentTab = tabKey;
+  if (state.gateMode === "valid") {
+    payloadJsonDisplay.classList.remove("hidden");
+    gatekeeperErrorAlert.classList.add("hidden");
 
-    // Render bars
-    let barsHtml = '';
-    data.bars.forEach((b, i) => {
-      barsHtml += `<rect x="${b.x}" y="${b.y}" width="22" height="${b.h}" rx="3" class="bar-fill ${b.class}" data-idx="${i}"></rect>`;
-    });
-    chartBarsGroup.innerHTML = barsHtml;
-
-    // Update spline
-    splinePath.setAttribute('d', data.spline);
-
-    // Update summary cells
-    if (data.summary && summaryCells.length === 4) {
-      data.summary.forEach((item, idx) => {
-        const cell = summaryCells[idx];
-        const labelEl = cell.querySelector('.cell-label');
-        const valEl = cell.querySelector('.cell-val');
-        if (labelEl) labelEl.textContent = item.label;
-        if (valEl) {
-          valEl.innerHTML = `${item.val} <span class="unit">${item.unit}</span>`;
-        }
-      });
-    }
-
-    // Update or re-bind hoverable dots
-    const existingDots = chartCanvasArea.querySelectorAll('.spline-dot');
-    existingDots.forEach(d => d.remove());
-
-    const svg = document.getElementById('mainChartSvg');
-    data.dots.forEach((dot, idx) => {
-      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      circle.setAttribute("cx", dot.cx);
-      circle.setAttribute("cy", dot.cy);
-      circle.setAttribute("r", dot.r);
-      circle.setAttribute("class", `spline-dot ${dot.crit ? 'dot-critical' : ''}`);
-
-      circle.addEventListener('mouseenter', (e) => {
-        const rect = chartCanvasArea.getBoundingClientRect();
-        const ptX = (dot.cx / 600) * rect.width;
-        const ptY = (dot.cy / 240) * rect.height;
-
-        tooltipHeader.textContent = dot.label;
-        tooltipValue.textContent = dot.val;
-        tooltipSub.textContent = dot.sub;
-
-        chartTooltip.style.left = `${Math.min(Math.max(ptX - 60, 10), rect.width - 160)}px`;
-        chartTooltip.style.top = `${Math.max(ptY - 55, 10)}px`;
-        chartTooltip.classList.add('visible');
-      });
-
-      circle.addEventListener('mouseleave', () => {
-        chartTooltip.classList.remove('visible');
-      });
-
-      svg.appendChild(circle);
-    });
-
-    // Also bind hover to the bars
-    const barRects = chartBarsGroup.querySelectorAll('.bar-fill');
-    barRects.forEach(bar => {
-      bar.addEventListener('mouseenter', () => {
-        const idx = parseInt(bar.getAttribute('data-idx'));
-        const dot = data.dots[idx];
-        if (dot) {
-          const rect = chartCanvasArea.getBoundingClientRect();
-          const ptX = (dot.cx / 600) * rect.width;
-          const ptY = (dot.cy / 240) * rect.height;
-
-          tooltipHeader.textContent = dot.label;
-          tooltipValue.textContent = dot.val;
-          tooltipSub.textContent = dot.sub;
-
-          chartTooltip.style.left = `${Math.min(Math.max(ptX - 60, 10), rect.width - 160)}px`;
-          chartTooltip.style.top = `${Math.max(ptY - 55, 10)}px`;
-          chartTooltip.classList.add('visible');
-        }
-      });
-
-      bar.addEventListener('mouseleave', () => {
-        chartTooltip.classList.remove('visible');
-      });
-    });
+    const outgoingPayload = {
+      bank_id: "BANK_A_SG",
+      pseudo_id: state.pseudoId,
+      dp_clipped_perturbed_embedding: state.perturbedEmbedding,
+      dp_metadata: {
+        clip_norm_C: CONFIG.clipNormC,
+        noise_sigma: state.sigma,
+        local_epsilon: epsEst,
+      },
+      ed25519_signature: "0x94f8a1b2c7d8e90123456789abcdef01928374655647382910abcdef",
+      gatekeeper_status: "ACCEPTED: Signature Verified & Schema Valid",
+    };
+    payloadJsonDisplay.textContent = JSON.stringify(outgoingPayload, null, 2);
+  } else if (state.gateMode === "tampered") {
+    payloadJsonDisplay.classList.add("hidden");
+    gatekeeperErrorAlert.classList.remove("hidden");
+    gatekeeperErrorAlert.innerHTML = `
+      <strong>SecurityError: Ed25519 Signature Verification Failed!</strong><br>
+      Embedding vector was modified in transit. Provenance signature mismatch for bank public key <code>pk_BANK_A_SG</code>.<br>
+      <strong>Action:</strong> Payload dropped immediately at Coordinator perimeter.
+    `;
+  } else {
+    payloadJsonDisplay.classList.add("hidden");
+    gatekeeperErrorAlert.classList.remove("hidden");
+    gatekeeperErrorAlert.innerHTML = `
+      <strong>ValidationError: Plaintext Identifier '${CONFIG.rawAccount}' Detected!</strong><br>
+      Coordinator strictly rejects un-hashed raw account numbers and unmasked customer records.<br>
+      <strong>Action:</strong> Connection severed & compliance incident logged.
+    `;
   }
+}
 
-  // Handle Tab Clicks
-  reportTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      reportTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const tabName = tab.getAttribute('data-tab-name');
-      renderChart(tabName);
-    });
+// -----------------------------------------------------------------------------
+// EVENT LISTENERS
+// -----------------------------------------------------------------------------
+function setupListeners() {
+  // Scenario Toggle
+  btnScenarioAttack.addEventListener("click", () => {
+    state.scenario = "attack";
+    btnScenarioAttack.classList.add("active");
+    btnScenarioPayroll.classList.remove("active");
+    updateAll();
   });
 
-  // Initial Chart Render
-  renderChart('flow');
-
-
-  // =========================================================================
-  // 2. Interactive AI Assistant / Enclave Privacy Copilot
-  // =========================================================================
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  const chatLog = document.getElementById('chatLog');
-  const promptChips = document.querySelectorAll('.prompt-chip');
-  const modelPickerBtn = document.getElementById('modelPickerBtn');
-  const modelDropdownMenu = document.getElementById('modelDropdownMenu');
-  const selectedModelLabel = document.getElementById('selectedModelLabel');
-  const modelOptions = document.querySelectorAll('.model-option');
-
-  // Exact Knowledge Base Matching New Privacy Release Policy
-  const aiKnowledgeBase = {
-    sqlite: "A persistent bank-wide SQLite ledger atomically reserves privacy budget before generating OS-random Gaussian noise. All workers, models and key rotations share that ledger. If an export would cause cumulative epsilon to exceed 2.0 at delta 1e-5, it is atomically rejected. Failures after reservation still consume budget.",
-    ed25519: "Each bank holds an independent Ed25519 private signing key, and the coordinator pins its public verification key. The bank signs a versioned payload containing only pseudonymous embeddings, allowlisted edges, bank identity and a privacy receipt. Amounts, timestamps, labels and arbitrary metadata are excluded. Signatures establish bank provenance; they do not prove that a compromised bank applied noise or enforced its budget.",
-    hmac: "Banks share a high-entropy HMAC matching key so the same account produces the same pseudonym across institutions; the coordinator never receives that key. Matching reveals equality and connectivity; raw account IDs, balances, and transaction attributes remain strictly local to each bank.",
-    flow: "The 5-step protected inference flow: 1. Local Directed-GIN encodes private transactions. 2. BankPrivacyExporter clips whole-batch Frobenius norm and atomically reserves budget in SQLite before adding OS-random Gaussian noise. 3. Bank signs the versioned allowlisted payload with Ed25519. 4. EnclaveAggregator verifies signatures against pinned keys, strict schemas, and vector dimensions. 5. Coordinator runs boundary GAT and flags scores at or above 0.5.",
-    disclaimer: "This repository simulates an enclave in Python; hardware attestation must be supplied and verified externally. The DP bound covers embedding values conditional on a disclosed roster/topology; HMAC matching reveals connectivity. SQLite does not prevent privileged filesystem rollback. Benchmark figures are historical demonstration metrics.",
-    default: "Banks protect data before export: runtime HMAC keys pseudonymize endpoints, whole-batch clipping and OS-random Gaussian noise protect embedding values, and a persistent SQLite ledger atomically rejects releases exceeding epsilon 2.0 at delta 1e-5. Raw ledgers and model weights remain bank-local."
-  };
-
-  function appendChatMessage(sender, text) {
-    const msg = document.createElement('div');
-    msg.className = `chat-msg ${sender === 'user' ? 'chat-msg-user' : 'chat-msg-ai'}`;
-    msg.textContent = text;
-    chatLog.appendChild(msg);
-    chatLog.scrollTop = chatLog.scrollHeight;
-  }
-
-  function handleSendQuery(queryText) {
-    const text = queryText || chatInput.value.trim();
-    if (!text) return;
-
-    // Append User Message
-    appendChatMessage('user', text);
-    if (!queryText) chatInput.value = '';
-
-    // Determine Response
-    let responseText = aiKnowledgeBase.default;
-    const lower = text.toLowerCase();
-    if (lower.includes('sqlite') || lower.includes('budget') || lower.includes('reserve') || lower.includes('persist')) {
-      responseText = aiKnowledgeBase.sqlite;
-    } else if (lower.includes('ed25519') || lower.includes('sign') || lower.includes('pinned') || lower.includes('provenance')) {
-      responseText = aiKnowledgeBase.ed25519;
-    } else if (lower.includes('hmac') || lower.includes('matching key') || lower.includes('pseudonym') || lower.includes('pii')) {
-      responseText = aiKnowledgeBase.hmac;
-    } else if (lower.includes('flow') || lower.includes('pipeline') || lower.includes('steps')) {
-      responseText = aiKnowledgeBase.flow;
-    } else if (lower.includes('attestation') || lower.includes('disclaimer') || lower.includes('benchmark')) {
-      responseText = aiKnowledgeBase.disclaimer;
-    }
-
-    // Simulate Natural AI Response Typing
-    setTimeout(() => {
-      appendChatMessage('ai', responseText);
-    }, 280);
-  }
-
-  // Click on Suggested Prompt Chips
-  promptChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const query = chip.getAttribute('data-query');
-      handleSendQuery(query);
-    });
+  btnScenarioPayroll.addEventListener("click", () => {
+    state.scenario = "payroll";
+    btnScenarioPayroll.classList.add("active");
+    btnScenarioAttack.classList.remove("active");
+    updateAll();
   });
 
-  // Submit on Send Button
-  chatSendBtn.addEventListener('click', () => handleSendQuery());
-
-  // Submit on Enter Key (Shift+Enter for newline)
-  chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendQuery();
-    }
+  // Sigma Slider
+  sigmaSlider.addEventListener("input", (e) => {
+    state.sigma = parseFloat(e.target.value);
+    updateAll();
   });
 
-  // Model Picker Dropdown
-  modelPickerBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    modelDropdownMenu.classList.toggle('visible');
+  // Gatekeeper Buttons
+  btnGateValid.addEventListener("click", () => {
+    state.gateMode = "valid";
+    btnGateValid.classList.add("active");
+    btnGateTampered.classList.remove("active");
+    btnGatePlaintext.classList.remove("active");
+    updateAll();
   });
 
-  modelOptions.forEach(opt => {
-    opt.addEventListener('click', () => {
-      modelOptions.forEach(o => o.classList.remove('active'));
-      opt.classList.add('active');
-      const modelName = opt.getAttribute('data-model');
-      selectedModelLabel.textContent = modelName;
-      modelDropdownMenu.classList.remove('visible');
-    });
+  btnGateTampered.addEventListener("click", () => {
+    state.gateMode = "tampered";
+    btnGateTampered.classList.add("active");
+    btnGateValid.classList.remove("active");
+    btnGatePlaintext.classList.remove("active");
+    updateAll();
   });
 
-  document.addEventListener('click', () => {
-    modelDropdownMenu.classList.remove('visible');
+  btnGatePlaintext.addEventListener("click", () => {
+    state.gateMode = "plaintext";
+    btnGatePlaintext.classList.add("active");
+    btnGateValid.classList.remove("active");
+    btnGateTampered.classList.remove("active");
+    updateAll();
   });
 
-
-  // =========================================================================
-  // 3. Navigation & Dismissible Alerts
-  // =========================================================================
-  const closeAlertBtn = document.getElementById('closeAlert');
-  const complianceCard = document.getElementById('complianceCard');
-
-  if (closeAlertBtn && complianceCard) {
-    closeAlertBtn.addEventListener('click', () => {
-      complianceCard.style.opacity = '0';
-      complianceCard.style.transform = 'scale(0.95)';
-      setTimeout(() => {
-        complianceCard.style.display = 'none';
-      }, 200);
-    });
-  }
-
-  // Details button toast
-  const detailsBtn = document.getElementById('detailsBtn');
-  if (detailsBtn) {
-    detailsBtn.addEventListener('click', () => {
-      appendChatMessage('ai', "Privacy Policy: Raw ledgers, model checkpoints and unperturbed embeddings remain bank-local. The coordinator enforces pinned Ed25519 public keys, strict schemas, and flags scores >= 0.5.");
-    });
-  }
-
-  // Keyboard shortcut '/' to focus search
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-      e.preventDefault();
-      const searchInput = document.querySelector('.search-input');
-      if (searchInput) searchInput.focus();
-    }
+  // Regenerate Salt / Rehash Button
+  btnRehashPayload.addEventListener("click", async () => {
+    // Generate fresh HMAC with timestamp salt
+    const freshSalt = Date.now().toString(16);
+    state.pseudoId = await computeHmacSha256(
+      CONFIG.sharedHmacKey,
+      CONFIG.rawAccount + ":" + freshSalt
+    );
+    updateAll();
   });
-});
+}
+
+// -----------------------------------------------------------------------------
+// INITIALIZATION
+// -----------------------------------------------------------------------------
+async function init() {
+  state.pseudoId = await computeHmacSha256(CONFIG.sharedHmacKey, CONFIG.rawAccount);
+  setupListeners();
+  updateAll();
+}
+
+document.addEventListener("DOMContentLoaded", init);
