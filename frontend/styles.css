@@ -16,7 +16,7 @@
   /* Primary Typography */
   --text-primary: #1D1D1F;
   --text-secondary: #515154;
-  --text-muted: #86868B;
+  --text-muted: #62626A;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
@@ -58,6 +58,7 @@
 }
 
 body {
+  font-size: 15px;
   background-color: var(--bg-canvas);
   background-image: 
     radial-gradient(at 15% 10%, rgba(0, 113, 227, 0.06) 0px, transparent 50%),
@@ -76,10 +77,39 @@ body {
   margin: 0 auto;
 }
 
+/* Presentation clarity: readable labels and explicit evidence boundaries. */
+.demo-notice { border-left: 4px solid #0071E3; font-size: 14px; line-height: 1.7; }
+.demo-notice #snapshotStatus { display: block; margin-top: 6px; color: #515154; }
+.benchmark-card p { margin: 10px 0; }
+.benchmark-card code { overflow-wrap: anywhere; }
+.benchmark-card summary { cursor: pointer; font-weight: 600; }
+.summary-bars { padding: 24px 0; }
+.summary-bar-row { display: grid; grid-template-columns: minmax(110px, 1fr) 2fr 40px; align-items: center; gap: 12px; margin: 20px 0; }
+.summary-track { background: #ECEEF2; height: 22px; border-radius: 6px; overflow: hidden; }
+.summary-fill { height: 100%; border-radius: 6px; }
+.source-time { font-size: 12px; color: #62626A; }
+.empty-state { padding: 30px 0; color: #515154; }
+.svg-container svg { font-family: var(--font-sans); width: 100%; height: auto; }
+#bankRiskChartContainer svg text, #overviewTimelineChartContainer svg text { font-family: var(--font-sans); }
+.silo-desc { margin-top: 10px; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #0071E3; outline-offset: 3px; }
+.telemetry-grid .kpi-value { font-size: clamp(23px, 2.4vw, 32px); overflow-wrap: anywhere; }
+.nav-bar { flex-wrap: wrap; }
+@media (max-width: 600px) {
+  body { padding: 10px; }
+  .glass-card { padding: 18px; }
+  .table-header-bar, .audit-header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .global-filter-controls, .segmented-control { flex-wrap: wrap; }
+  .svg-container { overflow-x: auto; }
+  .svg-container svg { min-width: 560px; }
+  .summary-bar-row { grid-template-columns: 110px 1fr 30px; }
+}
+
 /* ==========================================================================
    Page View Switching & Animation
    ========================================================================== */
 .page-view {
+  min-width: 0;
   display: none;
   opacity: 0;
   transform: translateY(6px);
@@ -165,6 +195,7 @@ body {
 /* Page Navigation Tabs */
 .nav-page-tabs {
   display: flex;
+  flex-wrap: wrap;
   background: rgba(0, 0, 0, 0.05);
   padding: 3px;
   border-radius: 12px;
@@ -197,6 +228,7 @@ body {
 
 .nav-status-pills {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
@@ -593,13 +625,14 @@ body {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 420px;
 }
 
 .svg-container svg {
+  flex-shrink: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
   max-height: 430px;
 }
 
@@ -776,7 +809,7 @@ body {
    Bottom Audit Drawer & Code Inspector
    ========================================================================== */
 .audit-card {
-  margin-bottom: 0;
+  margin-bottom: 20px;
 }
 
 .audit-header {
@@ -822,6 +855,9 @@ body {
   margin-bottom: 16px;
 }
 
+.workspace-grid > *, .audit-grid > *, .controls-card > * { min-width: 0; }
+.card-header { flex-wrap: wrap; gap: 10px; }
+
 .audit-col-title {
   display: flex;
   align-items: center;
@@ -847,7 +883,8 @@ body {
   font-size: 11.5px;
   color: #1D1D1F;
   line-height: 1.5;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .alert-box {
@@ -920,6 +957,7 @@ body {
 
 @media (max-width: 850px) {
   .nav-bar {
+    position: static;
     flex-direction: column;
     align-items: stretch;
   }
