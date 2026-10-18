@@ -25,7 +25,7 @@ git diff --check
 - **Single Bank View** and **Screening Overview** show their respective record
   snapshots. The legacy JSON includes different record sets, so these are labelled
   separately, not reconciled into a fabricated complete ledger. Each view derives
-  its cards, charts and filters from the same rows. Counts describe the full
+  its count cards, decision breakdown and filters from the same rows. Counts describe the full
   snapshot before filtering. Transfers marked for hold are not a count of rings,
   confirmed fraud, prevented losses or detection accuracy.
 - The API endpoint remains `/api/telemetry` (optionally prefixed by
@@ -40,6 +40,13 @@ git diff --check
   malformed amounts remain unknown rather than being shown as clear or zero.
 
 ## Evidence boundaries
+
+The bank risk curve and screening-activity curve restore the original visual
+layout as explicitly labelled illustrations, not measured distributions or
+24-hour histories. The decision breakdown uses real counts from the loaded
+sample records. The top timing cards show the separate historical LinuxONE
+compute run below; they are not live UI, enclave or end-to-end latency readings.
+Privacy budget is shown as pending, with epsilon <= 2 only a target.
 
 The noise slider is a mathematical illustration using browser randomness, not a
 production privacy mechanism. There is no fabricated epsilon calculation, bank

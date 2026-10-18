@@ -98,6 +98,85 @@ function bars(items) {
     '<div class="summary-fill" style="width:' + (item.count / max * 100) + '%;background:' + item.color + '"></div></div>' +
     '<strong>' + item.count + '</strong></div>').join("") + '</div>';
 }
+function renderBankRiskChart(bankKey) {
+  const isC = bankKey === "bankC";
+  const isB = bankKey === "bankB";
+
+  return `
+    <svg viewBox="0 0 580 270" width="100%" height="270" xmlns="http://www.w3.org/2000/svg">
+      <!-- Axis Lines -->
+      <line x1="50" y1="220" x2="550" y2="220" stroke="#E5E5EA" stroke-width="1.5"/>
+      <line x1="50" y1="30" x2="50" y2="220" stroke="#E5E5EA" stroke-width="1.5"/>
+
+      <!-- Threshold Lines -->
+      <line x1="380" y1="30" x2="380" y2="220" stroke="#DA1E28" stroke-width="1.5" stroke-dasharray="4,4"/>
+      <text x="310" y="265" font-family="Inter" font-size="13" font-weight="700" fill="#DA1E28">Example review boundary</text>
+
+      <!-- Grid Labels -->
+      <text x="45" y="240" font-family="JetBrains Mono" font-size="13" fill="#86868B">Lower risk</text>
+      <text x="260" y="240" font-family="JetBrains Mono" font-size="13" fill="#86868B">Review</text>
+      <text x="480" y="240" font-family="JetBrains Mono" font-size="13" fill="#86868B">Higher risk</text>
+
+      <!-- Normal Distribution Bell Curve (Local View) -->
+      <path d="M 50 215 Q 120 210 160 140 Q 200 40 230 40 Q 260 40 300 150 Q 340 210 550 218"
+            fill="none" stroke="#0071E3" stroke-width="3"/>
+      <path d="M 50 215 Q 120 210 160 140 Q 200 40 230 40 Q 260 40 300 150 Q 340 210 550 218 L 550 220 L 50 220 Z"
+            fill="rgba(0, 113, 227, 0.08)"/>
+
+      <!-- Syndicate Spikes (Detected via Shared HMAC Matching) -->
+      <circle cx="${isC ? '480' : isB ? '460' : '440'}" cy="65" r="7" fill="#DA1E28"/>
+      <circle cx="${isC ? '495' : isB ? '475' : '455'}" cy="78" r="6" fill="#DA1E28"/>
+      <circle cx="${isC ? '510' : isB ? '490' : '470'}" cy="85" r="5" fill="#DA1E28"/>
+      <text x="385" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#DA1E28">
+        Cross-bank warning
+      </text>
+
+      <!-- Annotation Legend -->
+      <rect x="65" y="10" width="12" height="12" rx="3" fill="#0071E3"/>
+      <text x="85" y="20" font-family="Inter" font-size="13" font-weight="600" fill="#1D1D1F">Single-bank view (illustrative)</text>
+    </svg>
+  `;
+}
+
+function renderOverviewTimelineChart() {
+  return `
+    <svg viewBox="0 0 580 270" width="100%" height="270" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0071E3" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#0071E3" stop-opacity="0.0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Axes -->
+      <line x1="45" y1="220" x2="555" y2="220" stroke="#E5E5EA" stroke-width="1.5"/>
+      <line x1="45" y1="30" x2="45" y2="220" stroke="#E5E5EA" stroke-width="1.5"/>
+
+      <!-- X Labels -->
+      <text x="45" y="238" font-family="Arial, sans-serif" font-size="12" fill="#86868B">00:00</text>
+      <text x="165" y="238" font-family="Arial, sans-serif" font-size="12" fill="#86868B">06:00</text>
+      <text x="290" y="238" font-family="Arial, sans-serif" font-size="12" fill="#86868B">12:00</text>
+      <text x="415" y="238" font-family="Arial, sans-serif" font-size="12" fill="#86868B">18:00</text>
+      <text x="525" y="238" font-family="Arial, sans-serif" font-size="12" fill="#86868B">24:00</text>
+
+      <!-- Volume Area Curve -->
+      <path d="M 45 190 Q 110 180 165 140 T 290 90 T 415 110 T 550 75 L 550 220 L 45 220 Z" fill="url(#blueGrad)"/>
+      <path d="M 45 190 Q 110 180 165 140 T 290 90 T 415 110 T 550 75" fill="none" stroke="#0071E3" stroke-width="3"/>
+
+      <!-- Intercept Spikes (Crimson Bars) -->
+      <rect x="180" y="110" width="8" height="110" rx="3" fill="#DA1E28"/>
+      <rect x="295" y="70" width="8" height="150" rx="3" fill="#DA1E28"/>
+      <rect x="425" y="90" width="8" height="130" rx="3" fill="#DA1E28"/>
+      <rect x="520" y="55" width="8" height="165" rx="3" fill="#DA1E28"/>
+
+      <!-- Legend -->
+      <circle cx="65" cy="45" r="5" fill="#0071E3"/>
+      <text x="76" y="49" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#1D1D1F">Screening activity (illustrative)</text>
+      <rect x="325" y="40" width="10" height="10" rx="2" fill="#DA1E28"/>
+      <text x="342" y="49" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#1D1D1F">Review spikes (illustrative)</text>
+    </svg>
+  `;
+}
 function decisionBars(summary) {
   return bars([
     { label: "Simulated hold", count: summary.frozen, color: "#DA1E28" },
@@ -200,7 +279,7 @@ function updateBankView() {
   byId("bankKpiStoppedSub").textContent = summary.heldVolume + " in marked transactions";
   byId("bankKpiSuspicious").textContent = summary.review;
   byId("bankKpiCleared").textContent = summary.approved;
-  byId("bankRiskChartContainer").innerHTML = decisionBars(summary);
+  byId("bankRiskChartContainer").innerHTML = renderBankRiskChart(state.selectedBank) + '<p class="audit-subtitle">Snapshot: ' + summary.frozen + ' marked for hold · ' + summary.review + ' for review · ' + summary.approved + ' clear · ' + summary.unknown + ' not supplied</p>';
   const statusMap = { frozen: "frozen", suspicious: "review", cleared: "approved" };
   const labels = { all: "All", frozen: "Hold", suspicious: "Review", cleared: "Clear" };
   for (const button of byId("bankTableFilters").querySelectorAll("button")) {
@@ -223,11 +302,8 @@ function updateOverviewView() {
   byId("overviewInterceptedRings").textContent = summary.frozen + " transfers";
   byId("overviewInterceptedAmount").textContent = summary.heldVolume + " marked for hold";
   byId("overviewInterceptRate").textContent = rows.length ? (summary.frozen / rows.length * 100).toFixed(1) + "%" : "—";
-  byId("overviewTimelineChartContainer").innerHTML = decisionBars(summary);
-  const origins = [...new Set(rows.map(row => row.origin))];
-  byId("overviewTopologyChartContainer").innerHTML = origins.length ? bars(origins.map(origin => ({
-    label: bankName(origin), count: rows.filter(row => row.origin === origin).length, color: "#0071E3",
-  }))) : '<p class="empty-state">No overview records supplied.</p>';
+  byId("overviewTimelineChartContainer").innerHTML = renderOverviewTimelineChart();
+  byId("overviewTopologyChartContainer").innerHTML = rows.length ? decisionBars(summary) : '<p class="empty-state">No overview records supplied.</p>';
   renderGlobalTable();
 }
 function renderGlobalTable() {

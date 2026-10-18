@@ -38,7 +38,7 @@
   <main class="page-view active" id="viewInfo">
     <section class="controls-card glass-card">
       <div class="control-group scenario-group">
-        <label class="control-label">Choose a money flow</label>
+          <label class="control-label">Choose a money flow · Outcome: <span id="kpiOutcome">Review</span></label>
         <div class="segmented-control">
           <button type="button" class="segment-btn active" id="btnScenarioAttack">High-risk money transfer</button>
           <button type="button" class="segment-btn" id="btnScenarioPayroll">Normal salary payments</button>
@@ -64,9 +64,10 @@
 
     <section class="telemetry-grid">
       <div class="glass-card kpi-card">
-        <div class="kpi-label">Example outcome</div>
-        <div class="kpi-value" id="kpiOutcome">Review</div>
-        <div class="kpi-sub">Scripted scenario, not a model prediction</div>
+        <div class="kpi-label">LinuxONE compute · measured P99</div>
+        <div class="kpi-value">6.05 ms</div>
+        <div class="kpi-sub"><span class="pill pill-blue">Median 3.80 ms</span> 250 synthetic trials</div>
+        <div class="audit-subtitle">Random weights · compute only, not end-to-end or enclave timing</div>
       </div>
       <div class="glass-card kpi-card">
         <div class="kpi-label">Detection accuracy</div>
@@ -74,9 +75,10 @@
         <div class="kpi-sub">Needs a trained model and held-out evaluation</div>
       </div>
       <div class="glass-card kpi-card">
-        <div class="kpi-label">Privacy guarantee</div>
-        <div class="kpi-value">Not verified</div>
-        <div class="kpi-sub">Noise alone does not establish differential privacy</div>
+        <div class="kpi-label">Privacy budget (ε)</div>
+        <div class="kpi-value">Pending</div>
+        <div class="kpi-sub">Target ε ≤ 2 · accounting not verified</div>
+        <div class="audit-subtitle">Noise alone does not establish differential privacy</div>
       </div>
       <div class="glass-card kpi-card">
         <div class="kpi-label">Simulated data check</div>
@@ -160,12 +162,12 @@
       <div class="glass-card kpi-card"><div class="kpi-label">Snapshot transaction value</div><div class="kpi-value" id="bankKpiVolume">—</div><div class="kpi-sub" id="bankKpiVolumeSub">Loading</div></div>
       <div class="glass-card kpi-card"><div class="kpi-label">Marked for a simulated hold</div><div class="kpi-value text-red" id="bankKpiStopped">—</div><div class="kpi-sub" id="bankKpiStoppedSub"></div></div>
       <div class="glass-card kpi-card"><div class="kpi-label">Marked for review</div><div class="kpi-value text-orange" id="bankKpiSuspicious">—</div><div class="kpi-sub">Record labels, not confirmed fraud</div></div>
-      <div class="glass-card kpi-card"><div class="kpi-label">Marked as clear</div><div class="kpi-value" id="bankKpiCleared">—</div><div class="kpi-sub">Not a real payment approval</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">Privacy budget (ε)</div><div class="kpi-value">Pending</div><div class="kpi-sub">Target ε ≤ 2 · accounting not verified</div><div class="audit-subtitle">Snapshot clear records: <span id="bankKpiCleared">—</span></div></div>
     </section>
     <section class="workspace-grid">
       <div class="glass-card">
-        <div class="card-title">Decisions in this bank’s snapshot</div>
-        <div class="audit-subtitle">Counts use the same records as the table, before filtering.</div>
+        <div class="card-header"><span class="card-title">What one bank can miss</span><span class="pill pill-blue">Illustrative demo</span></div>
+        <div class="audit-subtitle">A conceptual risk curve, not a measured score distribution. Counts below come from this bank’s snapshot.</div>
         <div id="bankRiskChartContainer"></div>
       </div>
       <div class="glass-card">
@@ -198,11 +200,11 @@
       <div class="glass-card kpi-card"><div class="kpi-label">Records in overview snapshot</div><div class="kpi-value" id="overviewScreenedValue">—</div><div class="kpi-sub" id="overviewVolumeBadge"></div></div>
       <div class="glass-card kpi-card"><div class="kpi-label">Marked for a simulated hold</div><div class="kpi-value text-red" id="overviewInterceptedRings">—</div><div class="kpi-sub" id="overviewInterceptedAmount"></div></div>
       <div class="glass-card kpi-card"><div class="kpi-label">Share marked for hold</div><div class="kpi-value" id="overviewInterceptRate">—</div><div class="kpi-sub">Not a fraud detection or prevention rate</div></div>
-      <div class="glass-card kpi-card"><div class="kpi-label">End-to-end latency</div><div class="kpi-value">Not measured</div><div class="kpi-sub">See separate compute benchmark in Money Flow</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">LinuxONE compute · measured P99</div><div class="kpi-value">6.05 ms</div><div class="kpi-sub"><span class="pill pill-blue">Median 3.80 ms</span> 250 synthetic trials</div><div class="audit-subtitle">Random weights · excludes network, privacy ledger, signature checks and settlement</div></div>
     </section>
     <section class="workspace-grid">
-      <div class="glass-card"><div class="card-title">Decisions in this snapshot</div><div class="audit-subtitle">All overview records, before search and filters.</div><div id="overviewTimelineChartContainer"></div></div>
-      <div class="glass-card"><div class="card-title">Records by sending bank</div><div class="audit-subtitle">Counts, not detected rings or accuracy estimates.</div><div id="overviewTopologyChartContainer"></div></div>
+      <div class="glass-card"><div class="card-header"><span class="card-title">Screening activity &amp; review spikes</span><span class="pill pill-blue">Illustrative demo</span></div><div class="audit-subtitle">Example activity pattern — not a measured 24-hour history.</div><div id="overviewTimelineChartContainer"></div></div>
+      <div class="glass-card"><div class="card-header"><span class="card-title">Decision breakdown</span><span class="pill pill-blue">From snapshot records</span></div><div class="audit-subtitle">Actual counts in this sample, not detected rings or model accuracy.</div><div id="overviewTopologyChartContainer"></div></div>
     </section>
     <section class="glass-card">
       <div class="table-header-bar">
