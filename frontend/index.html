@@ -3,524 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZeroMule | Confidential Graph AI Coordinator</title>
+  <title>ZeroMule | Cross-bank money flow demo</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-container">
+<div class="app-container">
+  <header class="nav-bar">
+    <div class="nav-brand">
+      <img src="assets/logo.png" alt="ZeroMule" class="brand-logo">
+      <div class="brand-text">
+        <div class="brand-title">ZeroMule Coordinator</div>
+        <div class="brand-subtitle">See suspicious money flows across banks</div>
+      </div>
+    </div>
+    <nav class="nav-page-tabs" aria-label="Dashboard views">
+      <button class="nav-tab-btn active" id="tabBtnInfo" type="button">Money Flow</button>
+      <button class="nav-tab-btn" id="tabBtnBank" type="button">Single Bank View</button>
+      <button class="nav-tab-btn" id="tabBtnOverview" type="button">Screening Overview</button>
+    </nav>
+    <div class="nav-status-pills">
+      <span class="pill pill-blue">Interactive prototype</span>
+      <span class="pill pill-gray" id="backendStatusPill" role="status">Loading sample records…</span>
+    </div>
+  </header>
 
-    <!-- 1. STICKY FROSTED HEADER BAR WITH PAGE SWITCHER -->
-    <header class="nav-bar">
-      <div class="nav-brand">
-        <img src="assets/logo.png" alt="ZeroMule Logo" class="brand-logo">
-        <div class="brand-text">
-          <div class="brand-title">ZeroMule Coordinator</div>
-          <div class="brand-subtitle">Privacy-Preserving Cross-Bank Graph AI &bull; IBM LinuxONE s390x</div>
+  <aside class="glass-card demo-notice">
+    <strong>Demo, not a payment system.</strong> The walkthrough uses synthetic examples and simulated decisions.
+    It does not run model inference, verify signatures, enforce a privacy budget or move money.
+    Bank and overview tabs show separate record snapshots; their totals describe only the records in each view.
+    <span id="snapshotStatus" role="status"></span>
+  </aside>
+
+  <main class="page-view active" id="viewInfo">
+    <section class="controls-card glass-card">
+      <div class="control-group scenario-group">
+        <label class="control-label">Choose a money flow</label>
+        <div class="segmented-control">
+          <button type="button" class="segment-btn active" id="btnScenarioAttack">High-risk money transfer</button>
+          <button type="button" class="segment-btn" id="btnScenarioPayroll">Normal salary payments</button>
         </div>
       </div>
-
-      <!-- Center: Apple-Style Frosted Page Switcher -->
-      <nav class="nav-page-tabs" id="pageNav">
-        <button type="button" class="nav-tab-btn active" data-page="info" id="tabBtnInfo">
-          Information View
-        </button>
-        <button type="button" class="nav-tab-btn" data-page="bank" id="tabBtnBank">
-          Singular Bank View
-        </button>
-        <button type="button" class="nav-tab-btn" data-page="overview" id="tabBtnOverview">
-          Screening Overview
-        </button>
-      </nav>
-
-      <!-- Right: System Status Pills -->
-      <div class="nav-status-pills">
-        <span class="pill pill-blue"><span class="pill-dot"></span>IBM LinuxONE s390x</span>
-        <span class="pill pill-gray" id="backendStatusPill" title="Connection status to Python ML Engine">&bull; Standalone Mode</span>
-        <span class="pill pill-green">&#10003; Gatekeeper Active</span>
+      <div class="control-group slider-group">
+        <div class="slider-header">
+          <label for="sigmaSlider" class="control-label">Added noise — visual example</label>
+          <span class="slider-value" id="sigmaValDisplay">0.80</span>
+        </div>
+        <input type="range" id="sigmaSlider" min="0.10" max="1.50" step="0.05" value="0.80" class="apple-slider">
+        <div class="slider-hint">Changes the sample numbers, not a verified privacy guarantee.</div>
       </div>
-    </header>
-
-    <!-- ===================================================================== -->
-    <!-- VIEW 1: INFORMATION VIEW (COORDINATOR & JUDGES MASTER VIEW)          -->
-    <!-- ===================================================================== -->
-    <main class="page-view active" id="viewInfo">
-
-      <!-- Interactive Controls Bar -->
-      <section class="controls-card glass-card">
-        <div class="control-group scenario-group">
-          <label class="control-label">Transaction Stream Scenario</label>
-          <div class="segmented-control" id="scenarioSwitch">
-            <button type="button" class="segment-btn active" data-scenario="attack" id="btnScenarioAttack">
-              <span class="status-indicator red"></span>Coordinated 4-Hop Cross-Bank Mule Ring
-            </button>
-            <button type="button" class="segment-btn" data-scenario="payroll" id="btnScenarioPayroll">
-              <span class="status-indicator green"></span>Benign Corporate Payroll Batch
-            </button>
-          </div>
+      <div class="control-group gate-group">
+        <label class="control-label">Simulate a data check</label>
+        <div class="gate-buttons">
+          <button type="button" class="gate-btn active" id="btnGateValid">Expected data</button>
+          <button type="button" class="gate-btn" id="btnGateTampered">Altered data</button>
+          <button type="button" class="gate-btn" id="btnGatePlaintext">Exposed account ID</button>
         </div>
+      </div>
+    </section>
 
-        <div class="control-group slider-group">
-          <div class="slider-header">
-            <label for="sigmaSlider" class="control-label">Local DP Noise Scale (&sigma;)</label>
-            <span class="slider-value" id="sigmaValDisplay">0.80</span>
-          </div>
-          <input type="range" id="sigmaSlider" min="0.10" max="1.50" step="0.05" value="0.80" class="apple-slider">
-          <div class="slider-hint">Per-bank budget: &epsilon; = <span id="epsEstDisplay">1.38</span> (C=1.0)</div>
-        </div>
+    <section class="telemetry-grid">
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Example outcome</div>
+        <div class="kpi-value" id="kpiOutcome">Review</div>
+        <div class="kpi-sub">Scripted scenario, not a model prediction</div>
+      </div>
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Detection accuracy</div>
+        <div class="kpi-value">Not verified</div>
+        <div class="kpi-sub">Needs a trained model and held-out evaluation</div>
+      </div>
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Privacy guarantee</div>
+        <div class="kpi-value">Not verified</div>
+        <div class="kpi-sub">Noise alone does not establish differential privacy</div>
+      </div>
+      <div class="glass-card kpi-card">
+        <div class="kpi-label">Simulated data check</div>
+        <div class="kpi-value" id="kpiGateValue">Accepted</div>
+        <div class="kpi-sub" id="kpiGateBadge">Illustrates the intended check only</div>
+      </div>
+    </section>
 
-        <div class="control-group gate-group">
-          <label class="control-label">Coordinator Gatekeeper Mode</label>
-          <div class="gate-buttons">
-            <button type="button" class="gate-btn active" data-gate="valid" id="btnGateValid">
-              Valid Signed Payload
-            </button>
-            <button type="button" class="gate-btn" data-gate="tampered" id="btnGateTampered">
-              Tampered Payload (Bad Sig)
-            </button>
-            <button type="button" class="gate-btn" data-gate="plaintext" id="btnGatePlaintext">
-              Plaintext PII Leak
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Top Telemetry Ribbon (4 Frosted Glass Metric Cards) -->
-      <section class="telemetry-grid">
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Enclave Inference SLA</div>
-          <div class="kpi-value" id="kpiSlaValue">24.2 ms</div>
-          <div class="kpi-sub">
-            <span class="pill pill-green">P99 &lt; 30ms Target</span> Pre-Settlement
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Enterprise Accuracy</div>
-          <div class="kpi-value"><span id="kpiAucValue">0.88</span> <span class="kpi-unit">PR-AUC</span></div>
-          <div class="kpi-sub">
-            <span class="pill pill-blue" id="kpiRecallValue">84.2% Recall @ 0.1% FPR</span>
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Local Differential Privacy</div>
-          <div class="kpi-value" id="kpiDpValue">&epsilon; = 1.38</div>
-          <div class="kpi-sub">
-            <span class="pill pill-green" id="kpiDpBadge">Clip C=1.0 &bull; &sigma;=0.80</span> Local per-bank
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Coordinator Gatekeeper</div>
-          <div class="kpi-value" id="kpiGateValue">3/3 Verified</div>
-          <div class="kpi-sub">
-            <span class="pill pill-green" id="kpiGateBadge">Ed25519 Valid &bull; 0 Raw PII</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Hero Workspace: Dual-Reality Silo vs Coordinator + Topology Graph -->
-      <section class="workspace-grid">
-        <!-- Left Column: The Dual-Reality Inspector -->
-        <div class="dual-reality-col">
-          <div class="glass-card silo-container">
-            <div class="card-header">
-              <span class="card-title">1. Local Bank Silos (Pre-Transmission)</span>
-              <span class="pill pill-gray">Isolated 1-Hop Horizon</span>
-            </div>
-
-            <!-- Bank A Mini Card -->
-            <div class="silo-box" id="siloBankA">
-              <div class="silo-top">
-                <strong class="silo-name">Bank A (Origin Silo)</strong>
-                <span class="pill pill-green">Local View: Cleared (0.11)</span>
-              </div>
-              <div class="silo-desc">Outflow: <b>$4,900.00</b> structured wire below $5k limit</div>
-              <div class="silo-tags">
-                <span class="mono-tag">HMAC: 0x8f4b..91a2</span>
-                <span class="mono-tag" id="tagBankADp">LDP: C=1.0, &epsilon;1=1.4</span>
-                <span class="mono-tag">Signed: Ed25519_pkA</span>
-              </div>
-            </div>
-
-            <!-- Bank B Mini Card -->
-            <div class="silo-box" id="siloBankB">
-              <div class="silo-top">
-                <strong class="silo-name">Bank B (Intermediary Relay)</strong>
-                <span class="pill pill-green">Local View: Cleared (0.14)</span>
-              </div>
-              <div class="silo-desc">Relay: Split P2P transfers (<b>2 &times; $2,450.00</b>) in 42s</div>
-              <div class="silo-tags">
-                <span class="mono-tag">HMAC: 0x3a9c..44e0</span>
-                <span class="mono-tag" id="tagBankBDp">LDP: C=1.0, &epsilon;2=1.2</span>
-                <span class="mono-tag">Signed: Ed25519_pkB</span>
-              </div>
-            </div>
-
-            <!-- Bank C Mini Card -->
-            <div class="silo-box" id="siloBankC">
-              <div class="silo-top">
-                <strong class="silo-name">Bank C (Settlement / Cash-Out)</strong>
-                <span class="pill pill-green">Local View: Cleared (0.09)</span>
-              </div>
-              <div class="silo-desc">Inbound consolidation prior to rapid cash-out</div>
-              <div class="silo-tags">
-                <span class="mono-tag">HMAC: 0x7e1d..b805</span>
-                <span class="mono-tag" id="tagBankCDp">LDP: C=1.0, &epsilon;3=1.5</span>
-                <span class="mono-tag">Signed: Ed25519_pkC</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Section: Coordinator Decision Banner -->
-          <div class="glass-card decision-card" id="coordinatorDecisionCard"></div>
-        </div>
-
-        <!-- Right Column: Stitched Graph Topology Canvas -->
-        <div class="glass-card topology-col">
+    <section class="workspace-grid">
+      <div class="dual-reality-col">
+        <div class="glass-card silo-container">
           <div class="card-header">
-            <span class="card-title">2. Stitched Pseudonymous Graph Topology</span>
-            <span class="pill pill-blue">Directed-Multigraph GIN + InfoNCE Cycle Head</span>
+            <span class="card-title">1. What each bank sees alone</span>
+            <span class="pill pill-gray">Limited view</span>
           </div>
-          <div class="svg-container" id="svgContainer"></div>
+          <div id="scenarioBankCards"></div>
         </div>
-      </section>
-
-      <!-- Bottom Interactive Drawer: Coordinator Gatekeeper & Audit -->
-      <section class="glass-card audit-card">
-        <div class="audit-header">
-          <div>
-            <div class="card-title">3. Cryptographic Ingestion Gatekeeper & Local Protection Audit</div>
-            <div class="audit-subtitle">Verify what leaves each bank vs. what the Coordinator accepts</div>
-          </div>
-          <div class="audit-actions">
-            <span class="pill pill-blue">Zero Plaintext Exposure</span>
-            <button type="button" class="btn-refresh" id="btnRehashPayload" title="Regenerate Test HMAC and Noise">
-              Regenerate Sample
-            </button>
-          </div>
+        <div class="glass-card decision-card" id="coordinatorDecisionCard" aria-live="polite"></div>
+      </div>
+      <div class="glass-card topology-col">
+        <div class="card-header">
+          <span class="card-title">2. See the connected money trail</span>
+          <span class="pill pill-blue">Illustrative flow</span>
         </div>
+        <div class="svg-container" id="svgContainer"></div>
+      </div>
+    </section>
 
-        <div class="audit-grid">
-          <div class="audit-column">
-            <div class="audit-col-title">
-              <span class="pill pill-gray">Private Perimeter</span>
-              Inside Bank A Perimeter (Private Raw Data &mdash; Never Transmitted)
-            </div>
-            <div class="code-wrapper">
-              <pre class="json-code" id="rawJsonDisplay"></pre>
-            </div>
-          </div>
-
-          <div class="audit-column">
-            <div class="audit-col-title">
-              <span class="pill pill-blue">Enclave Ingestion</span>
-              Outgoing Payload Received by Coordinator Gatekeeper
-            </div>
-            <div class="code-wrapper" id="payloadWrapper">
-              <pre class="json-code" id="payloadJsonDisplay"></pre>
-              <div class="alert-box alert-error hidden" id="gatekeeperErrorAlert"></div>
-            </div>
-          </div>
+    <section class="glass-card audit-card">
+      <div class="audit-header">
+        <div>
+          <div class="card-title">3. What stays private — and what could be shared</div>
+          <div class="audit-subtitle">All values below are synthetic and generated in your browser. This is not a deployed bank-to-coordinator boundary.</div>
         </div>
-
-        <!-- Security Concerns Bar -->
-        <div class="security-concerns-bar">
-          <div class="concern-item">
-            <span class="concern-label">Identity Protection:</span>
-            <span class="concern-val">Shared-Key HMAC-SHA256 Pseudonymization</span>
-          </div>
-          <div class="concern-item">
-            <span class="concern-label">Feature Privacy:</span>
-            <span class="concern-val">Local DP (L2 Norm Clip C=1.0 + Gaussian Noise)</span>
-          </div>
-          <div class="concern-item">
-            <span class="concern-label">Integrity:</span>
-            <span class="concern-val">Bank Ed25519 Signatures</span>
-          </div>
-          <div class="concern-item">
-            <span class="concern-label">Deployment Security:</span>
-            <span class="concern-val">mTLS 1.3 + LinuxONE s390x Enclave</span>
-          </div>
+        <button type="button" class="btn-refresh" id="btnRehashPayload">Generate another noise sample</button>
+      </div>
+      <div class="audit-grid">
+        <div class="audit-column">
+          <div class="audit-col-title">Bank-side example: account details stay here</div>
+          <pre class="json-code" id="rawJsonDisplay"></pre>
         </div>
-      </section>
-    </main>
-
-    <!-- ===================================================================== -->
-    <!-- VIEW 2: SINGULAR BANK VIEW (WHAT EACH BANK SEES INTERNALLY)           -->
-    <!-- ===================================================================== -->
-    <main class="page-view" id="viewBank">
-
-      <!-- Bank Institution Switcher Header -->
-      <section class="controls-card glass-card bank-selector-bar">
-        <div class="control-group bank-select-group">
-          <label class="control-label">Select Participating Bank Deployment</label>
-          <div class="segmented-control" id="bankSelectorSwitch">
-            <button type="button" class="segment-btn active" data-bank="bankA" id="btnBankA">
-              Bank A (Origin Silo &bull; Wire Hub)
-            </button>
-            <button type="button" class="segment-btn" data-bank="bankB" id="btnBankB">
-              Bank B (Intermediary Relay &bull; P2P)
-            </button>
-            <button type="button" class="segment-btn" data-bank="bankC" id="btnBankC">
-              Bank C (Settlement &bull; Cash-Out)
-            </button>
-          </div>
+        <div class="audit-column">
+          <div class="audit-col-title">Sharing example: coded ID and noisy numerical summary</div>
+          <pre class="json-code" id="payloadJsonDisplay"></pre>
+          <div class="alert-box alert-error hidden" id="gatekeeperErrorAlert" role="status"></div>
         </div>
-        <div class="bank-identity-badge">
-          <span class="pill pill-blue" id="bankIdPill">Identifier: BANK_A_SG</span>
-          <span class="pill pill-green" id="bankLedgerPill">SQLite DP Ledger: Enforcing &Delta;=1e-5</span>
+      </div>
+      <div class="security-concerns-bar">
+        <div class="concern-item"><span class="concern-label">Coded IDs</span><span class="concern-val">Pseudonyms can still link activity; they are not anonymous.</span></div>
+        <div class="concern-item"><span class="concern-label">Added noise</span><span class="concern-val">Visual illustration only. Privacy accounting must be validated separately.</span></div>
+        <div class="concern-item"><span class="concern-label">Signature checks</span><span class="concern-val">Simulated here; no cryptographic verification runs in this view.</span></div>
+        <div class="concern-item"><span class="concern-label">Server protections</span><span class="concern-val">Secure Execution and mutual TLS have not been verified for this demo.</span></div>
+      </div>
+    </section>
+
+    <section class="glass-card benchmark-card">
+      <div class="card-title">Separate evidence: synthetic compute on IBM LinuxONE</div>
+      <p><strong>3.80 ms median · 6.05 ms P99</strong> across 250 synthetic trials, 24 nodes and 32 edges.</p>
+      <p>s390x CPU · PyTorch 2.11.0+cpu · 3 threads · randomly initialized weights, no trained checkpoint.</p>
+      <p>Not this dashboard’s response time or a detection-accuracy result. Excludes network, durable privacy-budget enforcement, signature verification and settlement.</p>
+      <details><summary>Run details supplied by the team</summary>
+        <p>2026-10-18 00:05:45 UTC · commit <code>d5d51311a9f2fa2b8f1f79828c38aacb851b46c6</code></p>
+        <p>Python 3.12.15 · server log: <code>/home/linux1/zeromule-benchmark.mxK76T/run.log</code></p>
+      </details>
+    </section>
+  </main>
+
+  <main class="page-view" id="viewBank">
+    <section class="controls-card glass-card bank-selector-bar">
+      <div class="control-group bank-select-group">
+        <label class="control-label">Choose a bank’s record snapshot</label>
+        <div class="segmented-control">
+          <button type="button" class="segment-btn active" id="btnBankA">Bank A</button>
+          <button type="button" class="segment-btn" id="btnBankB">Bank B</button>
+          <button type="button" class="segment-btn" id="btnBankC">Bank C</button>
         </div>
-      </section>
-
-      <!-- Bank Telemetry Cards (Stopped, Suspicious, Cleared, DP Budget) -->
-      <section class="telemetry-grid">
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Local Volume Screened</div>
-          <div class="kpi-value" id="bankKpiVolume">$14.2M</div>
-          <div class="kpi-sub" id="bankKpiVolumeSub">
-            <span class="pill pill-blue">48,120 Transactions</span> Today
-          </div>
+      </div>
+      <span class="pill pill-blue" id="bankIdPill">Bank A</span>
+    </section>
+    <section class="telemetry-grid">
+      <div class="glass-card kpi-card"><div class="kpi-label">Snapshot transaction value</div><div class="kpi-value" id="bankKpiVolume">—</div><div class="kpi-sub" id="bankKpiVolumeSub">Loading</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">Marked for a simulated hold</div><div class="kpi-value text-red" id="bankKpiStopped">—</div><div class="kpi-sub" id="bankKpiStoppedSub"></div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">Marked for review</div><div class="kpi-value text-orange" id="bankKpiSuspicious">—</div><div class="kpi-sub">Record labels, not confirmed fraud</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">Marked as clear</div><div class="kpi-value" id="bankKpiCleared">—</div><div class="kpi-sub">Not a real payment approval</div></div>
+    </section>
+    <section class="workspace-grid">
+      <div class="glass-card">
+        <div class="card-title">Decisions in this bank’s snapshot</div>
+        <div class="audit-subtitle">Counts use the same records as the table, before filtering.</div>
+        <div id="bankRiskChartContainer"></div>
+      </div>
+      <div class="glass-card">
+        <div class="card-title">Intended privacy boundary</div>
+        <div class="boundary-row"><span class="boundary-label">Keep at each bank</span><span class="boundary-val">Raw account IDs, customer details and private keys</span></div>
+        <div class="boundary-row"><span class="boundary-label">Share only allowed fields</span><span class="boundary-val">Coded IDs, protected summaries and signed metadata</span></div>
+        <div class="boundary-row"><span class="boundary-label">What remains to verify</span><span class="boundary-val">Privacy accounting, transport security and deployed enforcement</span></div>
+        <p class="audit-subtitle">This browser illustrates the design. It is not an authenticated bank portal; real bank views require server-side access controls.</p>
+      </div>
+    </section>
+    <section class="glass-card">
+      <div class="table-header-bar">
+        <div><span class="card-title">Bank transaction records</span><div class="audit-subtitle">Synthetic sample or API snapshot. Times are supplied by the source, not live ages.</div></div>
+        <div class="table-filter-group" id="bankTableFilters">
+          <button type="button" class="table-filter-btn active" data-filter="all">All (0)</button>
+          <button type="button" class="table-filter-btn" data-filter="frozen">Hold (0)</button>
+          <button type="button" class="table-filter-btn" data-filter="suspicious">Review (0)</button>
+          <button type="button" class="table-filter-btn" data-filter="cleared">Clear (0)</button>
         </div>
+      </div>
+      <div class="table-responsive"><table class="apple-table">
+        <thead><tr><th>Transaction / source time</th><th>Sample account</th><th>Coded ID</th><th>Other bank / recipient</th><th>Amount</th><th>Record decision</th></tr></thead>
+        <tbody id="bankTableBody"></tbody>
+      </table></div>
+    </section>
+  </main>
 
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Fraud Frozen Pre-Settlement</div>
-          <div class="kpi-value text-red" id="bankKpiStopped">14 Txs</div>
-          <div class="kpi-sub" id="bankKpiStoppedSub">
-            <span class="pill pill-red">$184,200 Stopped</span> Coordinator Held
-          </div>
+  <main class="page-view" id="viewOverview">
+    <section class="telemetry-grid">
+      <div class="glass-card kpi-card"><div class="kpi-label">Records in overview snapshot</div><div class="kpi-value" id="overviewScreenedValue">—</div><div class="kpi-sub" id="overviewVolumeBadge"></div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">Marked for a simulated hold</div><div class="kpi-value text-red" id="overviewInterceptedRings">—</div><div class="kpi-sub" id="overviewInterceptedAmount"></div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">Share marked for hold</div><div class="kpi-value" id="overviewInterceptRate">—</div><div class="kpi-sub">Not a fraud detection or prevention rate</div></div>
+      <div class="glass-card kpi-card"><div class="kpi-label">End-to-end latency</div><div class="kpi-value">Not measured</div><div class="kpi-sub">See separate compute benchmark in Money Flow</div></div>
+    </section>
+    <section class="workspace-grid">
+      <div class="glass-card"><div class="card-title">Decisions in this snapshot</div><div class="audit-subtitle">All overview records, before search and filters.</div><div id="overviewTimelineChartContainer"></div></div>
+      <div class="glass-card"><div class="card-title">Records by sending bank</div><div class="audit-subtitle">Counts, not detected rings or accuracy estimates.</div><div id="overviewTopologyChartContainer"></div></div>
+    </section>
+    <section class="glass-card">
+      <div class="table-header-bar">
+        <div><span class="card-title">Cross-bank record snapshot</span><div class="audit-subtitle">Separate from the interactive Money Flow example.</div></div>
+        <div class="global-filter-controls">
+          <input type="search" id="globalSearchInput" class="table-search-input" placeholder="Search coded ID, bank or amount" aria-label="Search overview records">
+          <select id="globalStatusSelect" class="table-select" aria-label="Filter decisions">
+            <option value="all">All decisions</option><option value="frozen">Simulated hold</option><option value="review">Review</option><option value="approved">Clear</option>
+          </select>
+          <select id="globalBankSelect" class="table-select" aria-label="Filter banks">
+            <option value="all">All banks</option><option value="BANK_A">Bank A</option><option value="BANK_B">Bank B</option><option value="BANK_C">Bank C</option>
+          </select>
         </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Suspicious / Under Review</div>
-          <div class="kpi-value text-orange" id="bankKpiSuspicious">42 Txs</div>
-          <div class="kpi-sub" id="bankKpiSuspiciousSub">
-            <span class="pill pill-orange">Cross-Bank Cycle Risk</span> Enclave Queue
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Local DP Budget Consumption</div>
-          <div class="kpi-value" id="bankKpiBudget">&epsilon; = 1.35</div>
-          <div class="kpi-sub">
-            <span class="pill pill-green" id="bankKpiBudgetBadge">Max &epsilon; &le; 2.00</span> SQLite Atomic Guard
-          </div>
-        </div>
-      </section>
-
-      <!-- Bank Detail Workspace: Local Risk Distribution & Security Perimeter -->
-      <section class="workspace-grid">
-        <!-- Left: Local Velocity & Risk Density SVG Chart -->
-        <div class="glass-card">
-          <div class="card-header">
-            <div>
-              <span class="card-title">Local Risk Score & Velocity Distribution</span>
-              <div class="audit-subtitle">What this bank sees locally vs. transactions flagged as cross-bank cycles</div>
-            </div>
-            <span class="pill pill-gray" id="bankChartRolePill">Origin Horizon</span>
-          </div>
-          <div class="chart-container" id="bankRiskChartContainer">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-
-        <!-- Right: Local Bank Privacy Boundary & SQLite Ledger Audit -->
-        <div class="glass-card">
-          <div class="card-header">
-            <span class="card-title">Local Bank Privacy Release Boundary</span>
-            <span class="pill pill-green">Perimeter Enforced</span>
-          </div>
-          <div class="privacy-boundary-content">
-            <div class="boundary-row">
-              <span class="boundary-label">Institutional Role:</span>
-              <span class="boundary-val" id="bankDetailRole">Originating Silo (Outbound Wire Processing)</span>
-            </div>
-            <div class="boundary-row">
-              <span class="boundary-label">Local SQLite Ledger:</span>
-              <span class="boundary-val"><code>/data/bank_ledger.sqlite</code> (Atomic rejection if &epsilon; &gt; 2.0)</span>
-            </div>
-            <div class="boundary-row">
-              <span class="boundary-label">Runtime HMAC Secret:</span>
-              <span class="boundary-val">Shared High-Entropy Token Key (Coordinator Never Sees Key)</span>
-            </div>
-            <div class="boundary-row">
-              <span class="boundary-label">Signing Key Provenance:</span>
-              <span class="boundary-val"><code id="bankDetailKey">Ed25519_skA (Pinned pkA in Enclave)</code></span>
-            </div>
-            <div class="boundary-row">
-              <span class="boundary-label">Local Feature Perturbation:</span>
-              <span class="boundary-val">Whole-batch L2 Clipping (C=1.0) + OS CSPRNG Gaussian Noise</span>
-            </div>
-            <div class="boundary-row">
-              <span class="boundary-label">Plaintext Leak Defense:</span>
-              <span class="boundary-val"><span class="pill pill-green">0 Raw Account IDs or Customer PII Leave Perimeter</span></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Bank Local Transactions Ledger Table -->
-      <section class="glass-card">
-        <div class="table-header-bar">
-          <div>
-            <span class="card-title">Bank Local Transaction Screening Stream</span>
-            <div class="audit-subtitle">Live stream of incoming/outgoing wires, local GNN ratings, and Coordinator freeze signals</div>
-          </div>
-          <div class="table-filter-group" id="bankTableFilters">
-            <button type="button" class="table-filter-btn active" data-filter="all">All (8)</button>
-            <button type="button" class="table-filter-btn" data-filter="frozen">Frozen (2)</button>
-            <button type="button" class="table-filter-btn" data-filter="suspicious">Suspicious (3)</button>
-            <button type="button" class="table-filter-btn" data-filter="cleared">Cleared (3)</button>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="apple-table" id="bankTransactionsTable">
-            <thead>
-              <tr>
-                <th>Tx ID / Time</th>
-                <th>Internal Account</th>
-                <th>Pseudonym (HMAC Token)</th>
-                <th>Counterparty</th>
-                <th>Amount</th>
-                <th>Local View</th>
-                <th>Coordinator Action</th>
-                <th>Provenance</th>
-              </tr>
-            </thead>
-            <tbody id="bankTableBody">
-              <!-- Dynamically populated by JS -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- ===================================================================== -->
-    <!-- VIEW 3: SCREENING OVERVIEW (CROSS-BANK ANALYTICS & GLOBAL FEED)        -->
-    <!-- ===================================================================== -->
-    <main class="page-view" id="viewOverview">
-
-      <!-- Network-Wide Telemetry Ribbon -->
-      <section class="telemetry-grid">
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Total Transactions Screened</div>
-          <div class="kpi-value" id="overviewScreenedValue">142,890</div>
-          <div class="kpi-sub">
-            <span class="pill pill-blue" id="overviewVolumeBadge">$34.82M Volume</span> Across 3 Institutions
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Mule Syndicates Intercepted</div>
-          <div class="kpi-value text-red" id="overviewInterceptedRings">38 Rings</div>
-          <div class="kpi-sub">
-            <span class="pill pill-red" id="overviewInterceptedAmount">$1,842,500 Illicit Funds</span> Frozen Pre-Clearing
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Pre-Settlement Interception Rate</div>
-          <div class="kpi-value text-green" id="overviewInterceptRate">99.2%</div>
-          <div class="kpi-sub">
-            <span class="pill pill-green" id="overviewInterceptBadge">Stopped at Hop 3</span> Zero Cash-Out Leak
-          </div>
-        </div>
-
-        <div class="glass-card kpi-card">
-          <div class="kpi-label">Network Inference Latency</div>
-          <div class="kpi-value" id="overviewLatencyValue">24.2 ms</div>
-          <div class="kpi-sub">
-            <span class="pill pill-gray" id="overviewLatencySub">P50: 16.8 ms</span> &lt; 30ms RTGS Hard Target
-          </div>
-        </div>
-      </section>
-
-      <!-- Visual Analytics Section (2 Rich SVG Graphs) -->
-      <section class="workspace-grid">
-        <!-- 24-Hour Screening Volume & Interception Spikes -->
-        <div class="glass-card">
-          <div class="card-header">
-            <div>
-              <span class="card-title">24-Hour Screening Velocity & Interception Spikes</span>
-              <div class="audit-subtitle">Blue curve: Total screened transactions/hr &bull; Crimson bars: Intercepted laundering rings</div>
-            </div>
-            <span class="pill pill-blue">Real-Time Telemetry</span>
-          </div>
-          <div class="chart-container" id="overviewTimelineChartContainer">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-
-        <!-- Syndicate Topology & Hop-Count Distribution -->
-        <div class="glass-card">
-          <div class="card-header">
-            <div>
-              <span class="card-title">Syndicate Topology & Hop-Length Breakdown</span>
-              <div class="audit-subtitle">Cross-bank ring structures detected by Directed-GIN InfoNCE cycle head</div>
-            </div>
-            <span class="pill pill-green">98.6% Detection Precision</span>
-          </div>
-          <div class="chart-container" id="overviewTopologyChartContainer">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-      </section>
-
-      <!-- Global Cross-Bank Screening Feed Table -->
-      <section class="glass-card">
-        <div class="table-header-bar">
-          <div>
-            <span class="card-title">Global Multi-Bank Transaction Feed</span>
-            <div class="audit-subtitle">Live stream of interbank transactions screened through ZeroMule IBM LinuxONE Enclave</div>
-          </div>
-          <div class="global-filter-controls">
-            <input type="text" id="globalSearchInput" class="table-search-input" placeholder="Search by Pseudo ID or Tx...">
-            <select id="globalStatusSelect" class="table-select">
-              <option value="all">All Decisions</option>
-              <option value="frozen">Pre-Settlement Freeze</option>
-              <option value="review">Enclave Review</option>
-              <option value="approved">Settlement Approved</option>
-            </select>
-            <select id="globalBankSelect" class="table-select">
-              <option value="all">All Institutions</option>
-              <option value="BANK_A">Bank A (SG)</option>
-              <option value="BANK_B">Bank B (SG)</option>
-              <option value="BANK_C">Bank C (SG)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="apple-table" id="globalTransactionsTable">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Global Pseudo ID (HMAC-SHA256)</th>
-                <th>Origin Silo</th>
-                <th>Destination Silo</th>
-                <th>Amount</th>
-                <th>Cycle Score</th>
-                <th>Decision</th>
-                <th>Enclave Latency</th>
-              </tr>
-            </thead>
-            <tbody id="globalTableBody">
-              <!-- Dynamically populated by JS -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </main>
-
-  </div>
-
-  <script src="app.js"></script>
+      </div>
+      <div class="table-responsive"><table class="apple-table">
+        <thead><tr><th>Source time</th><th>Coded ID</th><th>Sending bank</th><th>Receiving bank</th><th>Amount</th><th>Record decision</th></tr></thead>
+        <tbody id="globalTableBody"></tbody>
+      </table></div>
+    </section>
+  </main>
+  <noscript><div class="glass-card">Enable JavaScript to run the interactive demo. No inference runs on this page.</div></noscript>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
